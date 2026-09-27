@@ -2,6 +2,16 @@
   "$schema": "https://json.schemastore.org/changelog.json",
   "releases": [
     {
+      "version": "2.4.3",
+      "date": "2026-09-27",
+      "highlights": [
+        {
+          "type": "fix",
+          "text": "新建项目会话在首条消息解读完成后重发，不再误创建新会话，正确复用当前会话"
+        }
+      ]
+    },
+    {
       "version": "2.4.2",
       "date": "2026-09-19",
       "highlights": [
