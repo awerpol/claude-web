@@ -18697,14 +18697,26 @@ async function sendCore(message, displayMessage, imagePaths, options = {}) {
           const wasTurnViewActive = turnViewIsActive();
           if (obj.type === 'meta') {
             serverAccepted = true;
+            const acknowledgedSessionId = String(obj.session_id || '').trim();
+            if (acknowledgedSessionId) turnSessionId = acknowledgedSessionId;
+            if (turnIsCode && acknowledgedSessionId && options.clientTurnId) {
+              // Once the server has created/confirmed a session for this turn,
+              // clear forceNew from the queue entry BEFORE removing it, so that
+              // if the entry gets re-queued due to a stream error (accepted: true,
+              // ok: false), it won't open a second new session with the same message.
+              const q = codeQueueFor(queueOwner);
+              const qEntry = q.find(e => e.id === options.clientTurnId);
+              if (qEntry && qEntry.forceNew) {
+                qEntry.forceNew = false;
+                persistCodeQueueEntry(qEntry).catch(() => {});
+              }
+            }
             if (turnIsCode && options.clientTurnId) {
               // The backend atomically removes the persisted row when it accepts
               // this client_turn_id. Mirror that transition immediately so a
               // concurrent queue refresh cannot leave an already-sent item visible.
               removeLocalCodeQueueEntry(queueOwner, options.clientTurnId);
             }
-            const acknowledgedSessionId = String(obj.session_id || '').trim();
-            if (acknowledgedSessionId) turnSessionId = acknowledgedSessionId;
             if (turnIsCode && acknowledgedSessionId) {
               migrateCodeSessionRun(turnRun, acknowledgedSessionId);
               targetSessionState = getOrCreateSessionState(acknowledgedSessionId);
