@@ -14718,6 +14718,11 @@ function startNativeTurnRecovery(targetSessionId, initialEventCount, initialCont
         if (!nativeOwned) {
           // Chat mode: history replay already flushed the full reply; nothing
           // more to reconcile (no SDK runtime, no code queue, no git state).
+          // If we created an empty container during recovery (because runtimeBusy
+          // passed null), remove it to avoid leaving an empty assistant bubble.
+          if (asstContainer && !asstContainer.textContent.trim() && !asstContainer.querySelector('.cw-tool-use, .cw-artifact, [data-role="thinking"]')) {
+            asstContainer.closest('.asst-wrap')?.remove();
+          }
           markConnectionRestored();
           refreshSessions();
           return;
@@ -17925,6 +17930,14 @@ async function dispatchCodeQueueEntry(entry) {
     // the endless "same question re-sends" loop, so retire the entry instead.
     removeLocalCodeQueueEntry(owner, entry.id);
     deletePersistedQueueEntry(entry);
+  } else if (result?.accepted) {
+    // Server accepted and ran the turn (e.g. AskUserQuestion completed mid-turn)
+    // but the client stream ended with an error (SSE disconnect, timeout, etc.).
+    // The backend already handled this message, so retire the entry to prevent
+    // the same message from being re-sent on the next queue drain.
+    removeLocalCodeQueueEntry(owner, entry.id);
+    deletePersistedQueueEntry(entry);
+    scheduleCodeQueueDrain(owner);
   } else {
     if (!result?.accepted) {
       const queue = codeQueueFor(owner);
