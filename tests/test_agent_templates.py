@@ -2,7 +2,7 @@
 
 Agent templates are reusable session presets (icon + system prompt + model +
 permission mode + bound connectors + default task + cwd + mode). They mirror
-Doubao's "伙伴" and opcode/jetbrains agent definitions. These tests pin the
+Doubao's "компаньоны" and opcode/jetbrains agent definitions. These tests pin the
 helper contract used by the /api/agent-templates endpoints, against an isolated
 temp DB so no real user data is touched.
 """
@@ -35,19 +35,19 @@ class AgentTemplateStoreTest(unittest.TestCase):
     # ---- create / get / list ------------------------------------------------
     def test_create_returns_id_and_get_roundtrips_fields(self):
         tid = server._agent_template_create({
-            "name": "代码审查员",
+            "name": "Ревьюер кода",
             "icon": "🔍",
-            "system_prompt": "你是严格的代码审查员。",
+            "system_prompt": "Ты строгий ревьюер кода.",
             "model": "claude-opus-4-8",
             "permission_mode": "plan",
-            "default_task": "审查当前 diff",
+            "default_task": "Проверь текущий diff",
             "cwd": "/tmp/proj",
             "connector_ids": ["github", "feishu"],
             "mode": "code",
         })
         self.assertRegex(tid, r"^[0-9a-f]{32}$")
         row = server._agent_template_get(tid)
-        self.assertEqual(row["name"], "代码审查员")
+        self.assertEqual(row["name"], "Ревьюер кода")
         self.assertEqual(row["mode"], "code")
         self.assertEqual(row["permission_mode"], "plan")
         # connector_ids surfaces as a parsed list, not raw JSON text.
@@ -110,26 +110,26 @@ class AgentTemplateStoreTest(unittest.TestCase):
     # ---- clone --------------------------------------------------------------
     def test_clone_produces_editable_copy(self):
         src = server._agent_template_create({
-            "name": "内置模板", "builtin": True, "connector_ids": ["github"],
+            "name": "Встроенный шаблон", "builtin": True, "connector_ids": ["github"],
         })
         clone_id = server._agent_template_clone(src)
         self.assertNotEqual(clone_id, src)
         clone = server._agent_template_get(clone_id)
         self.assertFalse(clone["builtin"])
         self.assertEqual(clone["connector_ids"], ["github"])
-        self.assertIn("副本", clone["name"])
+        self.assertIn("(копия)", clone["name"])
         # Clone is editable even though the source was builtin.
-        server._agent_template_update(clone_id, {"name": "我的模板"})
-        self.assertEqual(server._agent_template_get(clone_id)["name"], "我的模板")
+        server._agent_template_update(clone_id, {"name": "Мой шаблон"})
+        self.assertEqual(server._agent_template_get(clone_id)["name"], "Мой шаблон")
 
     # ---- export / import ----------------------------------------------------
     def test_export_import_roundtrips_without_id_collision(self):
         src = server._agent_template_create({
-            "name": "分享模板", "system_prompt": "hi", "connector_ids": ["notion"],
+            "name": "Общий шаблон", "system_prompt": "hi", "connector_ids": ["notion"],
         })
         blob = server._agent_template_export(src)
         self.assertNotIn("id", blob)  # exported blob carries no id
-        self.assertEqual(blob["name"], "分享模板")
+        self.assertEqual(blob["name"], "Общий шаблон")
         new_id = server._agent_template_import(blob)
         self.assertNotEqual(new_id, src)
         imported = server._agent_template_get(new_id)

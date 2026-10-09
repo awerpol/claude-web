@@ -25,7 +25,7 @@ class RoundtablePromptTest(unittest.TestCase):
 
     def test_empty_roles_raises(self):
         with self.assertRaises(ValueError):
-            server._build_roundtable_prompt([], "议题")
+            server._build_roundtable_prompt([], "Тема")
 
     def test_empty_topic_raises(self):
         with self.assertRaises(ValueError):
@@ -33,16 +33,16 @@ class RoundtablePromptTest(unittest.TestCase):
 
     def test_prompt_includes_topic_and_all_roles(self):
         roles = [
-            self._role("架构师", "你从系统设计角度分析。"),
-            self._role("安全专家", "你从安全角度分析。"),
+            self._role("Архитектор", "Анализируй с точки зрения системного дизайна."),
+            self._role("Специалист по безопасности", "Анализируй с точки зрения безопасности."),
         ]
-        prompt = server._build_roundtable_prompt(roles, "是否引入消息队列")
-        self.assertIn("是否引入消息队列", prompt)
-        self.assertIn("架构师", prompt)
-        self.assertIn("安全专家", prompt)
+        prompt = server._build_roundtable_prompt(roles, "Внедрять ли очередь сообщений")
+        self.assertIn("Внедрять ли очередь сообщений", prompt)
+        self.assertIn("Архитектор", prompt)
+        self.assertIn("Специалист по безопасности", prompt)
         # Each role's system prompt is carried into the briefing.
-        self.assertIn("你从系统设计角度分析。", prompt)
-        self.assertIn("你从安全角度分析。", prompt)
+        self.assertIn("Анализируй с точки зрения системного дизайна.", prompt)
+        self.assertIn("Анализируй с точки зрения безопасности.", prompt)
 
     def test_prompt_instructs_task_dispatch(self):
         prompt = server._build_roundtable_prompt([self._role("A", "pa")], "topic")
@@ -55,7 +55,7 @@ class RoundtablePromptTest(unittest.TestCase):
             [self._role("A", "pa"), self._role("B", "pb")], "topic"
         )
         # A roundtable should end with a synthesis, not just parallel opinions.
-        self.assertTrue(any(kw in prompt for kw in ("综合", "总结", "结论")))
+        self.assertTrue(any(kw in prompt for kw in ("обобщи", "вывод", "рекомендаци")))
 
 
 class RoundtableComposeTest(unittest.TestCase):
@@ -74,12 +74,12 @@ class RoundtableComposeTest(unittest.TestCase):
         self.tmp.cleanup()
 
     def test_compose_resolves_roles(self):
-        a = server._agent_template_create({"name": "架构师", "system_prompt": "sa", "mode": "code"})
-        b = server._agent_template_create({"name": "安全专家", "system_prompt": "sb", "mode": "code"})
-        out = server._roundtable_compose([a, b], "选型讨论")
-        self.assertIn("架构师", out["message"])
-        self.assertIn("安全专家", out["message"])
-        self.assertIn("选型讨论", out["message"])
+        a = server._agent_template_create({"name": "Архитектор", "system_prompt": "sa", "mode": "code"})
+        b = server._agent_template_create({"name": "Специалист по безопасности", "system_prompt": "sb", "mode": "code"})
+        out = server._roundtable_compose([a, b], "Обсуждение выбора")
+        self.assertIn("Архитектор", out["message"])
+        self.assertIn("Специалист по безопасности", out["message"])
+        self.assertIn("Обсуждение выбора", out["message"])
         self.assertTrue(out["display_message"])
 
     def test_compose_missing_role_raises_keyerror(self):

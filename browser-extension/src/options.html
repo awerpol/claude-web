@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Claude Code Web 插件设置</title>
+  <title>Настройки расширения Claude Code Web</title>
   <link rel="stylesheet" href="options.css" />
 </head>
 <body>
@@ -11,91 +11,91 @@
     <header class="hero">
       <div class="brand-row">
         <div>
-          <h1>浏览器插件设置</h1>
-          <p>连接本地 Claude Code Web，选中网页内容后直接提问。</p>
+          <h1>Настройки расширения браузера</h1>
+          <p>Подключитесь к локальному Claude Code Web и задавайте вопросы по выделенному тексту страницы.</p>
         </div>
       </div>
-      <button id="testBtn" type="button">测试连接</button>
+      <button id="testBtn" type="button">Проверить подключение</button>
     </header>
 
     <section class="setup">
       <div class="step">
         <span>1</span>
-        <p>启动 <code>claude-web</code></p>
+        <p>Запустите <code>claude-web</code></p>
       </div>
       <div class="step">
         <span>2</span>
-        <p>在 Web 设置页生成 Token</p>
+        <p>Создайте Token на странице настроек Web</p>
       </div>
       <div class="step">
         <span>3</span>
-        <p>选中文本，右键提问</p>
+        <p>Выделите текст и спросите через контекстное меню</p>
       </div>
     </section>
 
     <section class="panel">
       <div class="panel-head">
         <div>
-          <h2>本地连接</h2>
-          <p>插件只连接 localhost，不会把 Token 发到外部服务。</p>
+          <h2>Локальное подключение</h2>
+          <p>Расширение подключается только к localhost и не отправляет Token во внешние сервисы.</p>
         </div>
-        <div id="connectionBadge" class="badge">未测试</div>
+        <div id="connectionBadge" class="badge">Не проверено</div>
       </div>
 
       <div class="grid">
         <label>
-          <span>服务地址</span>
+          <span>Адрес сервиса</span>
           <input id="serviceUrl" autocomplete="off" placeholder="http://127.0.0.1:8765" />
         </label>
         <label>
           <span>Token</span>
-          <input id="token" autocomplete="off" type="password" placeholder="在 Claude Web 设置页生成" />
+          <input id="token" autocomplete="off" type="password" placeholder="Создайте на странице настроек Claude Web" />
         </label>
       </div>
 
       <div class="hint">
-        <strong>pip 用户怎么找插件目录？</strong>
-        <p>打开 Claude Web 的设置页，会显示插件目录和下载 ZIP；也可以在终端运行 <code>claude-web --extension-path</code>。</p>
+        <strong>Как найти каталог расширения при установке через pip?</strong>
+        <p>Откройте страницу настроек Claude Web — там показан каталог расширения и ZIP для скачивания; также можно выполнить в терминале <code>claude-web --extension-path</code>.</p>
       </div>
 
       <label>
-        <span>扩展默认模式</span>
+        <span>Режим расширения по умолчанию</span>
         <select id="assistantMode">
-          <option value="chat">网页问答</option>
-          <option value="code">Code 模式</option>
+          <option value="chat">Веб-чат</option>
+          <option value="code">Режим Code</option>
         </select>
-        <small>网页问答只分析当前页面；Code 模式会把页面上下文交给所选项目处理。</small>
+        <small>Веб-чат анализирует только текущую страницу; режим Code передаёт контекст страницы выбранному проекту.</small>
       </label>
 
       <label id="cwdField">
-        <span>Code 项目目录</span>
+        <span>Каталог проекта Code</span>
         <input id="cwd" autocomplete="off" placeholder="/Users/you/project" />
-        <small>仅 Code 模式使用。必须填写一个明确的本地项目目录。</small>
+        <small>Используется только в режиме Code. Нужно указать конкретный локальный каталог проекта.</small>
       </label>
 
       <div class="row">
         <label>
-          <span>模型</span>
+          <span>Модель</span>
           <select id="model">
-            <option value="">默认模型</option>
+            <option value="">Модель по умолчанию</option>
             <option value="opus">Opus</option>
             <option value="sonnet">Sonnet</option>
             <option value="haiku">Haiku</option>
           </select>
         </label>
         <label>
-          <span>权限模式</span>
+          <span>Режим разрешений</span>
           <select id="permissionMode">
-            <option value="default">默认</option>
-            <option value="plan">计划</option>
-            <option value="readonly">只读</option>
+            <option value="default">По умолчанию</option>
+            <option value="plan">План</option>
+            <option value="readonly">Только чтение</option>
           </select>
         </label>
       </div>
 
       <footer>
-        <span id="status">未保存</span>
-        <button id="saveBtn" type="button">保存设置</button>
+        <span id="status">Не сохранено</span>
+        <button id="saveBtn" type="button">Сохранить настройки</button>
       </footer>
     </section>
   </main>

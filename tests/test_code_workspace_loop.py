@@ -335,7 +335,7 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
             self.assertNotIn("function stopCurrentRunForPlan() {", source)
             self.assertNotIn("try { controller.abort(); } catch {}", source)
             self.assertIn("data.response?.alreadyResolved", source)
-            self.assertIn("已切换到「${modeLabel}」", source)
+            self.assertIn("переключено на «${modeLabel}»", source)
         daemon = (root / "claude_web" / "agent_bridge" / "daemon.mjs").read_text(encoding="utf-8")
         self.assertIn("alreadyResolved: true", daemon)
 
@@ -388,7 +388,7 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
         self.assertIn("const contextCompactionBySession = new Map()", source)
         self.assertIn("function syncContextCompactionStatus()", source)
         self.assertIn("runNativeCompact(targetSessionId)", source)
-        self.assertNotIn("压缩期间切换了会话，请重新发送", source)
+        self.assertNotIn("Во время сжатия произошло переключение сессии, повторите отправку", source)
         self.assertIn("const codeQueueDispatchingEntryIds = new Set()", source)
         self.assertIn("const visibleItems = (data.items || []).filter", source)
         self.assertIn("const paused = visibleItems.some", source)
@@ -484,7 +484,7 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
         # (1) treat a valid `done` turn_state as "no terminal", (2) report an
         # accepted turn as not-accepted (which the queue auto-resends), or
         # (3) delete the assistant bubble on the 409 already-dispatched reply
-        # (the "答案消失" symptom). See the same-question-resend loop.
+        # (симптом «исчезновение ответа»). See the same-question-resend loop.
         source = (
             Path(__file__).parents[1] / "claude_web" / "static" / "index.html"
         ).read_text(encoding="utf-8")
@@ -515,8 +515,8 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
         self.assertIn("lightContextMode: LS.get('lightContextMode', true)", source)
         self.assertIn("LIGHT_CONTEXT_DEFAULT_POLICY = 'native-compact-default-on-v1'", source)
         self.assertIn("LS.set('lightContextMode', true)", source)
-        self.assertNotIn("Web 版不能在运行中批准权限", source)
-        self.assertIn("替我审批", source)
+        self.assertNotIn("Веб-версия не может одобрять разрешения во время выполнения", source)
+        self.assertIn("Одобрять за меня", source)
         self.assertIn('id="cwModeAutoApprove"', source)
         self.assertNotIn('id="cwStatsApproval"', source)
 
@@ -557,7 +557,7 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
         server_source = (Path(__file__).parents[1] / "claude_web" / "server.py").read_text(encoding="utf-8")
         self.assertIn('def _resolve_code_file_target', server_source)
         self.assertIn('@app.get("/api/sessions/{session_id}/code-file")', server_source)
-        self.assertIn('_require_not_mobile_access(request, "远程设备不能启动电脑上的本机编辑器")', server_source)
+        self.assertIn('_require_not_mobile_access(request, "Удалённое устройство не может запускать локальный редактор на компьютере")', server_source)
 
     def test_code_tree_and_terminal_are_code_only_inspector_features(self):
         source = (Path(__file__).parents[1] / "static" / "index.html").read_text(encoding="utf-8")
@@ -583,7 +583,7 @@ class CodeWorkspaceStaticContractTest(unittest.TestCase):
             'function loadProjectDirectory',
             "'/api/directories?'",
             "'/api/projects/register'",
-            '选择此目录',
+            'Выбрать этот каталог',
         ]:
             self.assertIn(marker, source)
         server_source = (Path(__file__).parents[1] / "claude_web" / "server.py").read_text(encoding="utf-8")

@@ -28,7 +28,7 @@ class _FakeWorktreeManager:
 
     def list(self, session_id):
         if session_id == "chat":
-            raise CodeWorktreeError("code_session_required", "Worktree 仅支持 Code 会话")
+            raise CodeWorktreeError("code_session_required", "Рабочие деревья поддерживаются только в сессиях Code")
         return self.items
 
     def create(self, session_id, *, slug, branch, base_ref):
@@ -37,14 +37,14 @@ class _FakeWorktreeManager:
 
     def get(self, session_id, worktree_id):
         if worktree_id == "foreign":
-            raise CodeWorktreeError("worktree_forbidden", "Worktree 不属于当前 Code 会话")
+            raise CodeWorktreeError("worktree_forbidden", "Рабочее дерево не принадлежит текущей сессии Code")
         return self.items[0]
 
     def remove(self, session_id, worktree_id, *, confirm):
         if not confirm:
-            raise CodeWorktreeError("confirmation_required", "删除 Worktree 需要显式确认")
+            raise CodeWorktreeError("confirmation_required", "Для удаления рабочего дерева требуется явное подтверждение")
         if worktree_id == "dirty":
-            raise CodeWorktreeError("worktree_dirty", "Worktree 存在未提交修改，拒绝删除")
+            raise CodeWorktreeError("worktree_dirty", "В рабочем дереве есть незакоммиченные изменения, удаление отклонено")
         self.removed.append((session_id, worktree_id, confirm))
         return {**self.items[0], "status": "removed", "exists": False}
 
@@ -149,7 +149,7 @@ class CodeWorktreeFrontendContractTest(unittest.TestCase):
         body = self.package_html[start:end]
         self.assertIn("item.runtime_active", body)
         self.assertIn("item.dirty", body)
-        self.assertIn("confirm(`确认删除 Worktree", body)
+        self.assertIn("confirm(`Удалить отдельный каталог рабочего дерева", body)
         self.assertIn("JSON.stringify({ confirm:true })", body)
         self.assertNotIn("force:", body)
         self.assertNotIn("delete_branch", body)

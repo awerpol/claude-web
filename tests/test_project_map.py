@@ -164,7 +164,7 @@ class ProjectMapStorageTest(unittest.TestCase):
                 base_revision=0,
                 model="",
                 effort="",
-                preferred_language="zh",
+                preferred_language="ru",
             )
         revision = self.storage.publish_snapshot(
             run_id="run-a",
@@ -206,7 +206,7 @@ class ProjectMapStorageTest(unittest.TestCase):
                 base_revision=0,
                 model="",
                 effort="",
-                preferred_language="zh",
+                preferred_language="ru",
             )
 
         with ThreadPoolExecutor(max_workers=4) as executor:
@@ -231,7 +231,7 @@ class ProjectMapStorageTest(unittest.TestCase):
             base_revision=0,
             model="",
             effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         ProjectMapStorage(self.db_path).initialize()
         run = self.storage.run("run-restart")
@@ -249,7 +249,7 @@ class ProjectMapStorageTest(unittest.TestCase):
             base_revision=0,
             model="",
             effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         self.storage.request_cancel("cancelled-run")
         with self.assertRaises(ProjectMapPublishCancelled):
@@ -273,7 +273,7 @@ class ProjectMapStorageTest(unittest.TestCase):
             base_revision=0,
             model="",
             effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
@@ -299,7 +299,7 @@ class ProjectMapStorageTest(unittest.TestCase):
         self.storage.create_run(
             run_id="complete-run", owner_session_id="session-a", storage_key=key,
             canonical_cwd=str(self.root), base_revision=0, model="", effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         complete = _empty_dataset(key, self.root)
         complete["manifest"]["partial"] = False
@@ -311,7 +311,7 @@ class ProjectMapStorageTest(unittest.TestCase):
         self.storage.create_run(
             run_id="partial-run", owner_session_id="session-a", storage_key=key,
             canonical_cwd=str(self.root), base_revision=1, model="", effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         partial = _empty_dataset(key, self.root)
         partial["manifest"].update({"partial": True, "partial_reason": "time_limit"})
@@ -330,7 +330,7 @@ class ProjectMapStorageTest(unittest.TestCase):
         self.storage.create_run(
             run_id="history-run", owner_session_id="session-a", storage_key=key,
             canonical_cwd=str(self.root), base_revision=0, model="", effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         self.storage.publish_snapshot(
             run_id="history-run", storage_key=key, canonical_cwd=str(self.root),
@@ -447,7 +447,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
             base_revision=0,
             model="",
             effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
 
         self.service.validate_run_access("same-project", "owned-run")
@@ -479,7 +479,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
                 "run_id": "profile-run",
                 "storage_key": "profile-key",
                 "canonical_cwd": str(self.root),
-                "preferred_language": "zh",
+                "preferred_language": "ru",
                 "model": "",
                 "effort": "",
             },
@@ -568,8 +568,8 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
         }
         semantic = {
             "nodes": [{
-                "title": "伪造节点",
-                "summary": "不应被接受",
+                "title": "Поддельный узел",
+                "summary": "Не должен приниматься",
                 "roles": ["service"],
                 "evidence_ids": ["ev-known", "ev-forged"],
             }],
@@ -701,7 +701,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
             base_revision=0,
             model="",
             effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         self.service.storage.publish_snapshot(
             run_id="impact-run",
@@ -748,7 +748,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
         self.service.storage.create_run(
             run_id="fresh-run", owner_session_id="fresh-session", storage_key=key,
             canonical_cwd=str(self.root), base_revision=0, model="", effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         self.service.storage.publish_snapshot(
             run_id="fresh-run", storage_key=key, canonical_cwd=str(self.root),
@@ -805,7 +805,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
             self.service.storage.create_run(
                 run_id=run_id, owner_session_id="revision-session", storage_key=key,
                 canonical_cwd=str(self.root), base_revision=revision, model="", effort="",
-                preferred_language="zh",
+                preferred_language="ru",
             )
             self.service.storage.publish_snapshot(
                 run_id=run_id, storage_key=key, canonical_cwd=str(self.root),
@@ -845,7 +845,7 @@ class ProjectMapServiceTest(unittest.IsolatedAsyncioTestCase):
         self.service.storage.create_run(
             run_id="pack-run", owner_session_id="pack-owner", storage_key=key,
             canonical_cwd=str(self.root), base_revision=0, model="", effort="",
-            preferred_language="zh",
+            preferred_language="ru",
         )
         self.service.storage.publish_snapshot(
             run_id="pack-run", storage_key=key, canonical_cwd=str(self.root),
@@ -894,8 +894,8 @@ class ProjectMapFrontendBoundaryTest(unittest.TestCase):
         index = (
             Path(__file__).parents[1] / "claude_web" / "static" / "index.html"
         ).read_text(encoding="utf-8")
-        # Project Map 入口已收进 header「更多工具」菜单，仍是工作模式专属：
-        # 按钮本身为菜单项，且位于带 cw-code-only 的菜单分组内（Chat 模式整组隐藏）。
+        # Пункт входа Project Map убран в меню header «Больше инструментов» и остаётся только для рабочего режима:
+        # сама кнопка является пунктом меню и находится в группе меню с cw-code-only (в режиме Chat вся группа скрыта).
         self.assertIn('id="cwProjectMapBtn" class="cw-more-tool-item"', index)
         self.assertIn('<div class="cw-more-tool-group cw-code-only">', index)
         self.assertNotIn('<script src="/assets/project-map.js"', index)

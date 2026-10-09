@@ -23,7 +23,7 @@ class _FakeBrowserValidationRegistry:
 
     def list_recipes(self, session_id):
         if session_id == "chat":
-            raise CodeBrowserValidationError("code_session_required", "浏览器验收仅支持 Code 会话")
+            raise CodeBrowserValidationError("code_session_required", "Приёмка в браузере поддерживается только для сессий Code")
         return [self.recipe]
 
     def create_recipe(self, session_id, **payload):
@@ -31,7 +31,7 @@ class _FakeBrowserValidationRegistry:
 
     def get_recipe(self, session_id, recipe_id):
         if recipe_id == "foreign":
-            raise CodeBrowserValidationError("validation_forbidden", "验收记录不属于当前 Code 会话")
+            raise CodeBrowserValidationError("validation_forbidden", "Запись приёмки не принадлежит текущей сессии Code")
         return self.recipe
 
     def list_runs(self, session_id, *, recipe_id=""):
@@ -42,7 +42,7 @@ class _FakeBrowserValidationRegistry:
 
     def get_run(self, session_id, run_id):
         if run_id == "missing":
-            raise CodeBrowserValidationError("run_not_found", "浏览器验收运行不存在")
+            raise CodeBrowserValidationError("run_not_found", "Запуск приёмки в браузере не найден")
         return self.run
 
     def transition_run(self, session_id, run_id, status, **payload):
@@ -89,7 +89,7 @@ class CodeBrowserValidationApiTest(unittest.IsolatedAsyncioTestCase):
         )
         self.assertEqual("queued", run["run"]["status"])
         self.assertEqual("external", run["execution"])
-        self.assertIn("外部浏览器执行器", run["message"])
+        self.assertIn("внешним исполнителем браузера", run["message"])
 
         running = await server.update_code_browser_validation_run(
             "owner", "run-1",
@@ -159,8 +159,8 @@ class CodeBrowserValidationFrontendContractTest(unittest.TestCase):
         review_end = self.package_html.index('id="rewindPreviewModal"', review_start)
         review = self.package_html[review_start:review_end]
         self.assertIn('id="cwBrowserValidation" class="cw-browser-validation cw-code-only"', review)
-        self.assertIn('待外部浏览器执行器回传证据', review)
-        self.assertIn('不会自动执行浏览器', review)
+        self.assertIn('Ожидание доказательств от внешнего исполнителя браузера', review)
+        self.assertIn('браузер автоматически не запускается', review)
 
     def test_frontend_creates_records_without_browser_or_server_command_execution(self):
         start = self.package_html.index("let browserValidationRefreshSerial")
@@ -171,7 +171,7 @@ class CodeBrowserValidationFrontendContractTest(unittest.TestCase):
         self.assertIn("status:'skipped'", body)
         self.assertIn("JSON.stringify(evidence, null, 2)", body)
         self.assertIn("server_command_suggestion", body)
-        self.assertIn("服务器命令建议（不执行）", body)
+        self.assertIn("Рекомендуемая серверная команда (не выполняется)", body)
         self.assertNotIn("runCodeValidation(", body)
         self.assertNotIn("window.open(", body)
 

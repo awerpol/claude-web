@@ -145,7 +145,7 @@ class CodeContextLedger:
         if expected_cwd is not None and self._canonical_cwd(expected_cwd) != canonical_cwd:
             raise CodeContextLedgerError(
                 "workspace_mismatch",
-                "上下文描述符不属于当前 Code 会话绑定的项目目录",
+                "Контекстный дескриптор не принадлежит каталогу проекта, привязанному к текущей сессии Code",
             )
         normalized_type = self._entry_type(entry_type)
         normalized_source = self._name(source, "source")
@@ -187,7 +187,7 @@ class CodeContextLedger:
                 (entry_id,),
             ).fetchone()
         if row is None:
-            raise CodeContextLedgerError("budget_exhausted", "上下文账本预算不足")
+            raise CodeContextLedgerError("budget_exhausted", "Бюджет журнала контекста исчерпан")
         return self._payload(row)
 
     def record_project_map_pack(
@@ -297,11 +297,11 @@ class CodeContextLedger:
     ) -> Dict[str, Any]:
         canonical_cwd = self._code_session_cwd(session_id)
         if expected_cwd is not None and self._canonical_cwd(expected_cwd) != canonical_cwd:
-            raise CodeContextLedgerError("workspace_mismatch", "原生 compact 不属于当前 Code 项目")
+            raise CodeContextLedgerError("workspace_mismatch", "Нативный compact не принадлежит текущему проекту Code")
         compact_types = {self._entry_type(value) for value in compact_entry_types}
         dropped_types = {self._entry_type(value) for value in dropped_entry_types}
         if compact_types & dropped_types:
-            raise CodeContextLedgerError("invalid_compact_categories", "compact 与 dropped 类型不能重叠")
+            raise CodeContextLedgerError("invalid_compact_categories", "Типы compact и dropped не могут пересекаться")
         normalized_revision = self._revision(revision)
         normalized_tokens = self._token_estimate(token_estimate)
         descriptor_json, descriptor_bytes = self._descriptor_json(descriptor)
@@ -346,7 +346,7 @@ class CodeContextLedger:
                 (entry_id,),
             ).fetchone()
         if row is None:
-            raise CodeContextLedgerError("budget_exhausted", "上下文账本预算不足")
+            raise CodeContextLedgerError("budget_exhausted", "Бюджет журнала контекста исчерпан")
         return self._payload(row)
 
     def get(self, session_id: str, entry_id: str) -> Dict[str, Any]:
@@ -357,11 +357,11 @@ class CodeContextLedger:
                 (entry_id,),
             ).fetchone()
         if row is None:
-            raise CodeContextLedgerError("entry_not_found", "上下文账本条目不存在")
+            raise CodeContextLedgerError("entry_not_found", "Запись журнала контекста не существует")
         if row["session_id"] != session_id:
-            raise CodeContextLedgerError("ledger_forbidden", "条目不属于当前 Code 会话")
+            raise CodeContextLedgerError("ledger_forbidden", "Запись не принадлежит текущей сессии Code")
         if row["canonical_cwd"] != canonical_cwd:
-            raise CodeContextLedgerError("workspace_mismatch", "条目不属于当前 Code 项目")
+            raise CodeContextLedgerError("workspace_mismatch", "Запись не принадлежит текущему проекту Code")
         return self._payload(row)
 
     def list(
@@ -380,7 +380,7 @@ class CodeContextLedger:
         params: List[object] = [session_id, canonical_cwd]
         if lifecycle_state is not None:
             if lifecycle_state not in LIFECYCLE_STATES:
-                raise CodeContextLedgerError("invalid_lifecycle_state", "上下文生命周期状态无效")
+                raise CodeContextLedgerError("invalid_lifecycle_state", "Недействительное состояние жизненного цикла контекста")
             clauses.append("lifecycle_state = ?")
             params.append(lifecycle_state)
         if entry_type is not None:
@@ -496,11 +496,11 @@ class CodeContextLedger:
                 tuple(unique_ids),
             ).fetchall()
             if len(rows) != len(unique_ids):
-                raise CodeContextLedgerError("entry_not_found", "部分上下文账本条目不存在")
+                raise CodeContextLedgerError("entry_not_found", "Часть записей журнала контекста не существует")
             if any(row["session_id"] != session_id for row in rows):
-                raise CodeContextLedgerError("ledger_forbidden", "条目不属于当前 Code 会话")
+                raise CodeContextLedgerError("ledger_forbidden", "Запись не принадлежит текущей сессии Code")
             if any(row["canonical_cwd"] != canonical_cwd for row in rows):
-                raise CodeContextLedgerError("workspace_mismatch", "条目不属于当前 Code 项目")
+                raise CodeContextLedgerError("workspace_mismatch", "Запись не принадлежит текущему проекту Code")
             conn.execute(
                 f"UPDATE code_context_ledger SET stale = 1, updated_at = ? WHERE id IN ({placeholders})",
                 (self.clock(), *unique_ids),
@@ -589,12 +589,12 @@ class CodeContextLedger:
                 (session_id,),
             ).fetchone()
         if row is None:
-            raise CodeContextLedgerError("session_not_found", "Code 会话不存在")
+            raise CodeContextLedgerError("session_not_found", "Сессия Code не существует")
         if str(row["workspace_mode"] or "chat") != "code":
-            raise CodeContextLedgerError("code_session_required", "上下文账本仅支持 Code 会话")
+            raise CodeContextLedgerError("code_session_required", "Журнал контекста поддерживается только в сессиях Code")
         cwd = str(row["cwd"] or "").strip()
         if not cwd:
-            raise CodeContextLedgerError("project_required", "Code 会话尚未绑定项目目录")
+            raise CodeContextLedgerError("project_required", "Сессия Code ещё не привязана к каталогу проекта")
         return self._canonical_cwd(cwd)
 
     def _recheck_code_session(
@@ -608,11 +608,11 @@ class CodeContextLedger:
             (session_id,),
         ).fetchone()
         if row is None:
-            raise CodeContextLedgerError("session_not_found", "Code 会话不存在")
+            raise CodeContextLedgerError("session_not_found", "Сессия Code не существует")
         if str(row["workspace_mode"] or "chat") != "code":
-            raise CodeContextLedgerError("code_session_required", "上下文账本仅支持 Code 会话")
+            raise CodeContextLedgerError("code_session_required", "Журнал контекста поддерживается только в сессиях Code")
         if self._canonical_cwd(str(row["cwd"] or "")) != canonical_cwd:
-            raise CodeContextLedgerError("workspace_changed", "Code 会话项目目录已变更，请重试")
+            raise CodeContextLedgerError("workspace_changed", "Каталог проекта сессии Code изменён, повторите попытку")
 
     @staticmethod
     def _canonical_cwd(value: str) -> str:
@@ -625,14 +625,14 @@ class CodeContextLedger:
     def _entry_type(value: object) -> str:
         normalized = str(value or "").strip()
         if normalized not in ENTRY_TYPES:
-            raise CodeContextLedgerError("invalid_entry_type", "上下文账本条目类型无效")
+            raise CodeContextLedgerError("invalid_entry_type", "Недействительный тип записи журнала контекста")
         return normalized
 
     @staticmethod
     def _name(value: object, field: str) -> str:
         normalized = str(value or "").strip()
         if not _NAME_RE.fullmatch(normalized):
-            raise CodeContextLedgerError(f"invalid_{field}", f"{field} 格式无效")
+            raise CodeContextLedgerError(f"invalid_{field}", f"Недействительный формат {field}")
         return normalized
 
     @staticmethod
@@ -641,67 +641,67 @@ class CodeContextLedger:
             return ""
         normalized = str(value).strip()
         if len(normalized.encode("utf-8")) > 128:
-            raise CodeContextLedgerError("invalid_revision", "revision 过长")
+            raise CodeContextLedgerError("invalid_revision", "revision слишком длинный")
         return normalized
 
     def _token_estimate(self, value: object) -> int:
         try:
             number = int(value)
         except (TypeError, ValueError) as exc:
-            raise CodeContextLedgerError("invalid_token_estimate", "token estimate 必须是整数") from exc
+            raise CodeContextLedgerError("invalid_token_estimate", "token estimate должен быть целым числом") from exc
         if number < 0 or number > self.max_token_estimate:
-            raise CodeContextLedgerError("token_budget_exceeded", "token estimate 超出上下文账本预算")
+            raise CodeContextLedgerError("token_budget_exceeded", "token estimate превышает бюджет журнала контекста")
         return number
 
     def _timestamp(self, value: Optional[float]) -> float:
         number = self.clock() if value is None else float(value)
         if not math.isfinite(number) or number < 0:
-            raise CodeContextLedgerError("invalid_created_at", "created_at 无效")
+            raise CodeContextLedgerError("invalid_created_at", "created_at недействителен")
         return number
 
     def _descriptor_json(self, descriptor: Mapping[str, Any]) -> tuple[str, int]:
         if not isinstance(descriptor, Mapping):
-            raise CodeContextLedgerError("invalid_descriptor", "descriptor 必须是对象")
+            raise CodeContextLedgerError("invalid_descriptor", "descriptor должен быть объектом")
         normalized = self._normalize_descriptor(dict(descriptor), depth=0)
         payload = json.dumps(normalized, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
         payload_bytes = len(payload.encode("utf-8"))
         if payload_bytes > self.max_descriptor_bytes:
-            raise CodeContextLedgerError("descriptor_too_large", "descriptor 超出上下文账本大小限制")
+            raise CodeContextLedgerError("descriptor_too_large", "descriptor превышает ограничение размера журнала контекста")
         return payload, payload_bytes
 
     def _normalize_descriptor(self, value: Any, *, depth: int) -> Any:
         if depth > 8:
-            raise CodeContextLedgerError("descriptor_too_deep", "descriptor 嵌套过深")
+            raise CodeContextLedgerError("descriptor_too_deep", "descriptor слишком глубоко вложен")
         if value is None or isinstance(value, (bool, int)):
             return value
         if isinstance(value, float):
             if not math.isfinite(value):
-                raise CodeContextLedgerError("invalid_descriptor", "descriptor 包含无效数字")
+                raise CodeContextLedgerError("invalid_descriptor", "descriptor содержит недопустимое число")
             return value
         if isinstance(value, str):
             if len(value.encode("utf-8")) > 2048:
-                raise CodeContextLedgerError("descriptor_value_too_large", "descriptor 字段过长")
+                raise CodeContextLedgerError("descriptor_value_too_large", "Поле descriptor слишком длинное")
             return value
         if isinstance(value, Mapping):
             if len(value) > 100:
-                raise CodeContextLedgerError("descriptor_too_large", "descriptor 字段过多")
+                raise CodeContextLedgerError("descriptor_too_large", "Слишком много полей descriptor")
             result: Dict[str, Any] = {}
             for key, item in value.items():
                 normalized_key = str(key)
                 if normalized_key.lower() in _CONTENT_KEYS:
                     raise CodeContextLedgerError(
                         "raw_content_forbidden",
-                        "上下文账本只保存描述符，禁止保存源码、Prompt 或长文本正文",
+                        "Журнал контекста хранит только дескрипторы, запрещено хранить исходный код, промпты или длинный текст",
                     )
                 if not normalized_key or len(normalized_key.encode("utf-8")) > 128:
-                    raise CodeContextLedgerError("invalid_descriptor_key", "descriptor 字段名无效")
+                    raise CodeContextLedgerError("invalid_descriptor_key", "Недействительное имя поля descriptor")
                 result[normalized_key] = self._normalize_descriptor(item, depth=depth + 1)
             return result
         if isinstance(value, (list, tuple)):
             if len(value) > 200:
-                raise CodeContextLedgerError("descriptor_too_large", "descriptor 列表过长")
+                raise CodeContextLedgerError("descriptor_too_large", "Список descriptor слишком длинный")
             return [self._normalize_descriptor(item, depth=depth + 1) for item in value]
-        raise CodeContextLedgerError("invalid_descriptor", "descriptor 包含不支持的数据类型")
+        raise CodeContextLedgerError("invalid_descriptor", "descriptor содержит неподдерживаемый тип данных")
 
     @staticmethod
     def _payload(row: sqlite3.Row) -> Dict[str, Any]:

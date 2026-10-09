@@ -1,6 +1,6 @@
 {
   "version": 5,
-  "note": "Built-in connector catalog. transport: stdio|http|sse; auth: none|api_key|oauth. capability:notify marks push-only bots (WeCom/DingTalk group robots) that can only send notifications, not read/write — the UI badges these '仅通知' to set user expectation vs full read/write tools (GitHub/Feishu/email). Logo priority: bundled SVG (logo: connectors/<id>.svg, from simple-icons CC0) on a brand tile → colored word-mark tile (abbr + brand, for brands with no CC0 logo e.g. Feishu/DingTalk) → emoji icon. api_key entries declare secret_fields (target: env|header|url|arg) so the UI collects keys and routes them to the encrypted secret store; target:arg fills a <PLACEHOLDER> token in args (e.g. Feishu's -s <APP_SECRET>). Verified 2026-08 against npm/PyPI: @larksuiteoapi/lark-mcp (official Feishu), open-dingtalk/dingtalk-mcp (official DingTalk), wecom-mcp, mcp-email-server, akshare-one-mcp, api.tushare.pro/mcp are live public/free (user supplies own key). @modelcontextprotocol/server-* reference packages were mostly deprecated 2025-05; only filesystem/fetch/memory survive. Commercial services without a public MCP are listed as http templates for the user to fill in.",
+  "note": "Каталог встроенных коннекторов. transport: stdio|http|sse; auth: none|api_key|oauth. capability:notify отмечает push-ботов только для уведомлений (групповые роботы WeCom/DingTalk), которые умеют лишь отправлять уведомления, но не читать/писать — в UI они получают метку «только уведомления», чтобы пользователь отличал их от полноценных инструментов чтения/записи (GitHub/Feishu/email). Приоритет логотипа: встроенный SVG (logo: connectors/<id>.svg, из simple-icons CC0) на фирменной плитке → плитка с цветным текстовым знаком (abbr + бренд, для брендов без логотипа CC0, например Feishu/DingTalk) → значок-эмодзи. Записи api_key объявляют secret_fields (target: env|header|url|arg), чтобы UI собирал ключи и направлял их в зашифрованное хранилище секретов; target:arg подставляет токен <PLACEHOLDER> в args (например -s <APP_SECRET> у Feishu). Проверено в 2026-08 по npm/PyPI: @larksuiteoapi/lark-mcp (официальный Feishu), open-dingtalk/dingtalk-mcp (официальный DingTalk), wecom-mcp, mcp-email-server, akshare-one-mcp, api.tushare.pro/mcp работают как публичные/бесплатные (пользователь указывает собственный ключ). Справочные пакеты @modelcontextprotocol/server-* в основном устарели в 2025-05; сохранились только filesystem/fetch/memory. Коммерческие сервисы без публичного MCP перечислены как http-шаблоны для заполнения пользователем.",
   "connectors": [
     {
       "id": "filesystem",
@@ -9,33 +9,33 @@
       "transport": "stdio",
       "auth": "none",
       "icon": "📁",
-      "description": "读写本地目录文件（限定在允许的路径内）。",
+      "description": "Чтение и запись файлов в локальных каталогах (в пределах разрешённых путей).",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "<允许访问的目录>"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "<разрешённый каталог>"],
       "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
     },
     {
       "id": "fetch",
-      "name": "Fetch 抓网页",
+      "name": "Fetch — загрузка веб-страниц",
       "category": "web",
       "transport": "stdio",
       "auth": "none",
       "icon": "🌐",
-      "description": "抓取网页并转为适合模型阅读的文本。需已安装 uv（uvx）。",
+      "description": "Загружает веб-страницы и преобразует их в текст, удобный для чтения моделью. Требуется установленный uv (uvx).",
       "command": "uvx",
       "args": ["mcp-server-fetch"],
       "docs": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch"
     },
     {
       "id": "playwright",
-      "name": "Playwright 浏览器操作",
+      "name": "Playwright — управление браузером",
       "category": "web",
       "transport": "stdio",
       "auth": "none",
       "icon": "🎭",
       "logo": "connectors/playwright.svg",
       "brand": "#2EAD33",
-      "description": "微软官方浏览器自动化：网页导航、点击、填表、抓取。对应“操作浏览器”。",
+      "description": "Официальная автоматизация браузера от Microsoft: навигация по страницам, клики, заполнение форм, загрузка. Соответствует «управлению браузером».",
       "command": "npx",
       "args": ["@playwright/mcp@latest"],
       "docs": "https://github.com/microsoft/playwright-mcp"
@@ -49,7 +49,7 @@
       "icon": "🐙",
       "logo": "connectors/github.svg",
       "brand": "#181717",
-      "description": "GitHub 官方远程 MCP：仓库、Issue、PR、代码搜索（OAuth 授权）。",
+      "description": "Официальный удалённый MCP GitHub: репозитории, Issue, PR, поиск по коду (авторизация OAuth).",
       "url": "https://api.githubcopilot.com/mcp/",
       "docs": "https://github.com/github/github-mcp-server"
     },
@@ -62,12 +62,12 @@
       "icon": "🦊",
       "logo": "connectors/gitlab.svg",
       "brand": "#FC6D26",
-      "description": "GitLab 仓库、MR、Issue（社区维护包 @zereight/mcp-gitlab）。",
+      "description": "Репозитории, MR, Issue GitLab (пакет сообщества @zereight/mcp-gitlab).",
       "command": "npx",
       "args": ["-y", "@zereight/mcp-gitlab"],
       "secret_fields": [
         {"target": "env", "key": "GITLAB_PERSONAL_ACCESS_TOKEN", "label": "GitLab Personal Access Token"},
-        {"target": "env", "key": "GITLAB_API_URL", "label": "GitLab API 地址（自建填写，默认 gitlab.com）"}
+        {"target": "env", "key": "GITLAB_API_URL", "label": "Адрес GitLab API (для собственного развёртывания, по умолчанию gitlab.com)"}
       ],
       "docs": "https://github.com/zereight/gitlab-mcp"
     },
@@ -80,7 +80,7 @@
       "icon": "🛡️",
       "logo": "connectors/sentry.svg",
       "brand": "#362D59",
-      "description": "查询 Sentry 的错误与性能问题（远程 MCP，OAuth 授权）。",
+      "description": "Запрос ошибок и проблем производительности Sentry (удалённый MCP, авторизация OAuth).",
       "url": "https://mcp.sentry.dev/mcp",
       "docs": "https://docs.sentry.io/product/sentry-mcp/"
     },
@@ -93,7 +93,7 @@
       "icon": "📝",
       "logo": "connectors/notion.svg",
       "brand": "#000000",
-      "description": "在 Notion 中查找、读取和整理页面与数据库（远程 MCP，OAuth）。",
+      "description": "Поиск, чтение и упорядочивание страниц и баз данных в Notion (удалённый MCP, OAuth).",
       "url": "https://mcp.notion.com/mcp",
       "docs": "https://developers.notion.com/docs/mcp"
     },
@@ -106,7 +106,7 @@
       "icon": "📐",
       "logo": "connectors/linear.svg",
       "brand": "#5E6AD2",
-      "description": "查询和管理 Linear 的 Issue、项目与周期（远程 MCP，OAuth）。",
+      "description": "Запрос и управление Issue, проектами и циклами Linear (удалённый MCP, OAuth).",
       "url": "https://mcp.linear.app/mcp",
       "docs": "https://linear.app/docs/mcp"
     },
@@ -119,7 +119,7 @@
       "icon": "🧩",
       "logo": "connectors/atlassian.svg",
       "brand": "#0052CC",
-      "description": "查询和操作 Jira 工单与 Confluence 页面（官方远程 MCP，OAuth）。",
+      "description": "Запрос и работа с задачами Jira и страницами Confluence (официальный удалённый MCP, OAuth).",
       "url": "https://mcp.atlassian.com/v1/mcp",
       "docs": "https://www.atlassian.com/platform/remote-mcp-server"
     },
@@ -132,132 +132,132 @@
       "icon": "💬",
       "logo": "connectors/slack.svg",
       "brand": "#4A154B",
-      "description": "读取频道消息、发送消息（社区维护包 @zencoderai/slack-mcp-server）。",
+      "description": "Чтение сообщений каналов и отправка сообщений (пакет сообщества @zencoderai/slack-mcp-server).",
       "command": "npx",
       "args": ["-y", "@zencoderai/slack-mcp-server"],
       "secret_fields": [
-        {"target": "env", "key": "SLACK_BOT_TOKEN", "label": "Slack Bot Token（xoxb- 开头）"},
+        {"target": "env", "key": "SLACK_BOT_TOKEN", "label": "Slack Bot Token (начинается с xoxb-)"},
         {"target": "env", "key": "SLACK_TEAM_ID", "label": "Slack Team ID"}
       ],
       "docs": "https://github.com/zencoderai/slack-mcp-server"
     },
     {
       "id": "tushare",
-      "name": "Tushare 金融数据",
+      "name": "Tushare — финансовые данные",
       "category": "finance",
       "transport": "http",
       "auth": "api_key",
       "icon": "TS",
       "abbr": "TS",
       "brand": "#1abc9c",
-      "description": "A 股、基金、宏观等金融数据（官方远程 MCP，需 Tushare token）。URL 末尾把 <token> 换成你的 token。",
+      "description": "Финансовые данные: акции A, фонды, макроэкономика и т. д. (официальный удалённый MCP, нужен Tushare token). В конце URL замените <token> на свой token.",
       "url": "https://api.tushare.pro/mcp/token=<token>",
       "docs": "https://tushare.pro/document/1?doc_id=463"
     },
     {
       "id": "akshare",
-      "name": "AKShare 开源行情",
+      "name": "AKShare — открытые котировки",
       "category": "finance",
       "transport": "stdio",
       "auth": "none",
       "icon": "AK",
       "abbr": "AK",
       "brand": "#2980b9",
-      "description": "免费开源的中国市场行情数据（社区包 akshare-one-mcp，需 uv/uvx）。数据来自东方财富、新浪、雪球等公开源，无需密钥。",
+      "description": "Бесплатные открытые данные о котировках китайского рынка (пакет сообщества akshare-one-mcp, нужен uv/uvx). Данные из открытых источников Eastmoney, Sina, Xueqiu и других, ключ не требуется.",
       "command": "uvx",
       "args": ["akshare-one-mcp"],
       "docs": "https://github.com/zwldarren/akshare-one-mcp"
     },
     {
       "id": "eastmoney-template",
-      "name": "东方财富（自定义）",
+      "name": "Eastmoney (свой)",
       "category": "finance",
       "transport": "http",
       "auth": "api_key",
-      "icon": "东财",
-      "abbr": "东财",
+      "icon": "EM",
+      "abbr": "EM",
       "brand": "#FF5500",
-      "description": "东方财富暂无公开官方 MCP。若你已获得官方/自建 MCP 接入，填入 URL 与密钥即可连接。",
+      "description": "У Eastmoney пока нет публичного официального MCP. Если у вас есть официальный/собственный доступ к MCP, укажите URL и ключ для подключения.",
       "url": "https://<your-eastmoney-mcp-endpoint>/mcp",
       "secret_fields": [
-        {"target": "header", "key": "Authorization", "label": "Authorization（如 Bearer xxx）"}
+        {"target": "header", "key": "Authorization", "label": "Authorization (например Bearer xxx)"}
       ],
       "docs": "https://modelcontextprotocol.io/"
     },
     {
       "id": "ifind-template",
-      "name": "同花顺 IFinD（自定义）",
+      "name": "Tonghuashun IFinD (свой)",
       "category": "finance",
       "transport": "http",
       "auth": "api_key",
       "icon": "iF",
       "abbr": "iF",
       "brand": "#FF2436",
-      "description": "同花顺 IFinD 暂无公开官方 MCP。若你已获得官方接入，填入 URL 与密钥即可连接。",
+      "description": "У Tonghuashun IFinD пока нет публичного официального MCP. Если у вас есть официальный доступ, укажите URL и ключ для подключения.",
       "url": "https://<your-ifind-mcp-endpoint>/mcp",
       "secret_fields": [
-        {"target": "header", "key": "Authorization", "label": "Authorization（如 Bearer xxx）"}
+        {"target": "header", "key": "Authorization", "label": "Authorization (например Bearer xxx)"}
       ],
       "docs": "https://modelcontextprotocol.io/"
     },
     {
       "id": "wind-template",
-      "name": "Wind 万得（自定义）",
+      "name": "Wind (свой)",
       "category": "finance",
       "transport": "http",
       "auth": "api_key",
       "icon": "W",
       "abbr": "W",
       "brand": "#DC3023",
-      "description": "Wind 暂无公开官方 MCP（社区包需已授权的 Wind 终端）。如有自建接入，填入 URL 与密钥。",
+      "description": "У Wind пока нет публичного официального MCP (пакет сообщества требует лицензированного терминала Wind). Если есть собственный доступ, укажите URL и ключ.",
       "url": "https://<your-wind-mcp-endpoint>/mcp",
       "secret_fields": [
-        {"target": "header", "key": "Authorization", "label": "Authorization（如 Bearer xxx）"}
+        {"target": "header", "key": "Authorization", "label": "Authorization (например Bearer xxx)"}
       ],
       "docs": "https://modelcontextprotocol.io/"
     },
     {
       "id": "feishu",
-      "name": "飞书 / Lark",
+      "name": "Feishu / Lark",
       "category": "office",
       "transport": "stdio",
       "auth": "api_key",
       "icon": "🐦",
-      "abbr": "飞书",
+      "abbr": "FS",
       "brand": "#3370FF",
-      "description": "飞书官方 OpenAPI MCP：读写文档、多维表格、消息、日历等。需在飞书开放平台创建应用拿到 App ID / App Secret。",
-      "long_description": "字节跳动官方维护的飞书/Lark MCP（@larksuiteoapi/lark-mcp）。在飞书开放平台（open.feishu.cn）创建企业自建应用，获取 App ID 与 App Secret 并开通所需权限后填入即可。凭据以 CLI 参数注入，勾选加密后仅本机加密存储、运行时解密。",
+      "description": "Официальный MCP OpenAPI Feishu: чтение и запись документов, многомерных таблиц, сообщений, календаря и т. д. Нужно создать приложение на открытой платформе Feishu и получить App ID / App Secret.",
+      "long_description": "Официально поддерживаемый ByteDance MCP Feishu/Lark (@larksuiteoapi/lark-mcp). Создайте корпоративное собственное приложение на открытой платформе Feishu (open.feishu.cn), получите App ID и App Secret, откройте нужные разрешения и введите их. Учётные данные подставляются как параметры CLI; при включённом шифровании хранятся только локально в зашифрованном виде и расшифровываются во время выполнения.",
       "command": "npx",
       "args": ["-y", "@larksuiteoapi/lark-mcp", "mcp", "-a", "<APP_ID>", "-s", "<APP_SECRET>"],
       "secret_fields": [
-        {"target": "arg", "key": "APP_ID", "placeholder": "<APP_ID>", "label": "App ID（飞书应用凭证）"},
-        {"target": "arg", "key": "APP_SECRET", "placeholder": "<APP_SECRET>", "label": "App Secret（飞书应用密钥）"}
+        {"target": "arg", "key": "APP_ID", "placeholder": "<APP_ID>", "label": "App ID (учётные данные приложения Feishu)"},
+        {"target": "arg", "key": "APP_SECRET", "placeholder": "<APP_SECRET>", "label": "App Secret (секретный ключ приложения Feishu)"}
       ],
       "docs": "https://github.com/larksuite/lark-openapi-mcp"
     },
     {
       "id": "dingtalk",
-      "name": "钉钉 / DingTalk",
+      "name": "DingTalk",
       "category": "office",
       "transport": "stdio",
       "auth": "api_key",
       "capability": "notify",
       "icon": "📨",
-      "abbr": "钉",
+      "abbr": "DT",
       "brand": "#3296FA",
-      "description": "钉钉官方 MCP：日程、待办、消息等。需在钉钉开放平台创建应用拿到 Client ID / Client Secret。",
-      "long_description": "钉钉开放平台官方维护的 MCP（open-dingtalk/dingtalk-mcp）。在开放平台创建应用，获取 Client ID（AppKey）与 Client Secret（AppSecret）并授予所需权限后填入。密钥以环境变量注入，勾选加密后仅本机加密存储、运行时解密。",
+      "description": "Официальный MCP DingTalk: расписание, задачи, сообщения и т. д. Нужно создать приложение на открытой платформе DingTalk и получить Client ID / Client Secret.",
+      "long_description": "Официально поддерживаемый открытой платформой DingTalk MCP (open-dingtalk/dingtalk-mcp). Создайте приложение на открытой платформе, получите Client ID (AppKey) и Client Secret (AppSecret), выдайте нужные разрешения и введите их. Ключи подставляются как переменные окружения; при включённом шифровании хранятся только локально в зашифрованном виде и расшифровываются во время выполнения.",
       "command": "npx",
       "args": ["-y", "dingtalk-mcp@latest"],
       "secret_fields": [
-        {"target": "env", "key": "DINGTALK_Client_ID", "label": "Client ID（钉钉 AppKey）"},
-        {"target": "env", "key": "DINGTALK_Client_Secret", "label": "Client Secret（钉钉 AppSecret）"}
+        {"target": "env", "key": "DINGTALK_Client_ID", "label": "Client ID (AppKey DingTalk)"},
+        {"target": "env", "key": "DINGTALK_Client_Secret", "label": "Client Secret (AppSecret DingTalk)"}
       ],
       "docs": "https://open.dingtalk.com/document/ai-dev/dingtalk-server-api-mcp-overview"
     },
     {
       "id": "wecom",
-      "name": "企业微信 / WeCom",
+      "name": "WeCom",
       "category": "office",
       "transport": "stdio",
       "auth": "api_key",
@@ -265,54 +265,54 @@
       "icon": "💬",
       "logo": "connectors/wechat.svg",
       "brand": "#07C160",
-      "description": "企业微信群机器人：向群聊推送消息。需在群机器人设置中获取 Webhook 地址。",
-      "long_description": "社区维护的企业微信 MCP（wecom-mcp），通过群机器人 Webhook 发送消息。在企业微信群「添加群机器人」后复制其 Webhook 地址（形如 https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx）填入即可。密钥即嵌在该 URL 中，勾选加密后仅本机加密存储、运行时解密。",
+      "description": "Групповой робот WeCom: отправляет сообщения в групповой чат. Адрес Webhook нужно получить в настройках группового робота.",
+      "long_description": "Поддерживаемый сообществом MCP WeCom (wecom-mcp) отправляет сообщения через Webhook группового робота. В групповом чате WeCom выберите «Добавить группового робота», скопируйте его адрес Webhook (вида https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=xxx) и введите его. Ключ встроен в этот URL; при включённом шифровании хранится только локально в зашифрованном виде и расшифровывается во время выполнения.",
       "command": "npx",
       "args": ["-y", "wecom-mcp"],
       "secret_fields": [
-        {"target": "env", "key": "WECOM_WEBHOOK_URL", "label": "群机器人 Webhook 地址"}
+        {"target": "env", "key": "WECOM_WEBHOOK_URL", "label": "Адрес Webhook группового робота"}
       ],
       "docs": "https://github.com/code-tinker/wecom-mcp"
     },
     {
       "id": "email",
-      "name": "邮箱（IMAP/SMTP）",
+      "name": "Почта (IMAP/SMTP)",
       "category": "office",
       "transport": "stdio",
       "auth": "none",
       "icon": "📧",
       "abbr": "@",
       "brand": "#0F7B6C",
-      "description": "通用邮箱 MCP：读收件箱、发信、回复、整理。支持 QQ / 网易 163 / Gmail / Outlook 等任意 IMAP/SMTP 邮箱。",
-      "long_description": "社区维护的多账号邮箱 MCP（mcp-email-server，uvx 运行）。首次使用需先运行一次配置界面 `uvx mcp-email-server@latest ui` 录入邮箱地址与授权码（QQ/163 邮箱用「授权码」而非登录密码），保存后本连接器即可读取。凭据由该工具本地存储，不经过 claude-web。",
+      "description": "Универсальный MCP почты: чтение входящих, отправка, ответы, сортировка. Поддерживает любые почтовые ящики IMAP/SMTP, включая QQ / NetEase 163 / Gmail / Outlook.",
+      "long_description": "Поддерживаемый сообществом многопрофильный MCP почты (mcp-email-server, запускается через uvx). При первом использовании нужно один раз запустить интерфейс настройки `uvx mcp-email-server@latest ui`, указать адрес почты и код авторизации (для почты QQ/163 используется «код авторизации», а не пароль входа); после сохранения этот коннектор сможет читать. Учётные данные хранятся локально самим инструментом и не проходят через claude-web.",
       "command": "uvx",
       "args": ["mcp-email-server@latest", "stdio"],
       "docs": "https://github.com/Wh1isper/mcp-email-server"
     },
     {
       "id": "custom-http",
-      "name": "自定义远程 MCP",
+      "name": "Свой удалённый MCP",
       "category": "other",
       "transport": "http",
       "auth": "api_key",
       "icon": "🔌",
-      "description": "接入任意兼容 MCP 的远程服务（HTTP），用 Authorization 头携带密钥。",
+      "description": "Подключение любого удалённого сервиса, совместимого с MCP (HTTP), с ключом в заголовке Authorization.",
       "url": "https://example.com/mcp",
       "secret_fields": [
-        {"target": "header", "key": "Authorization", "label": "Authorization（如 Bearer xxx）"}
+        {"target": "header", "key": "Authorization", "label": "Authorization (например Bearer xxx)"}
       ],
       "docs": "https://modelcontextprotocol.io/"
     },
     {
       "id": "custom-stdio",
-      "name": "自定义本地命令 MCP",
+      "name": "Свой MCP с локальной командой",
       "category": "other",
       "transport": "stdio",
       "auth": "none",
       "icon": "⚙️",
-      "description": "用本地命令启动任意 MCP server（stdio）。命令、参数、环境变量自行填写。",
+      "description": "Запуск любого MCP server локальной командой (stdio). Команда, аргументы и переменные окружения задаются самостоятельно.",
       "command": "npx",
-      "args": ["-y", "<mcp-包名>"],
+      "args": ["-y", "<имя-mcp-пакета>"],
       "docs": "https://modelcontextprotocol.io/"
     }
   ]

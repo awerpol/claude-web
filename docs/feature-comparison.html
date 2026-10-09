@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Claude Code GUI 竞品对比与排期</title>
+<title>Сравнение конкурентов Claude Code GUI и план работ</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -57,7 +57,7 @@ tr.cat td {
 .b-n { background:#f6f8fa; color:#818b98; }
 .b-u { background:#fbefff; color:#8250df; }
 .b-s { background:#ffeff0; color:#cf222e; font-weight:600; }
-.gap-row td:first-child::after { content:' ← 缺口'; color:#cf222e; font-size:0.72rem; font-weight:600; }
+.gap-row td:first-child::after { content:' ← пробел'; color:#cf222e; font-size:0.72rem; font-weight:600; }
 
 /* schedule items */
 .sched { margin-bottom:2rem; }
@@ -123,315 +123,315 @@ tr.cat td {
 <body>
 <div class="container">
 
-<h1>Claude Code GUI 竞品对比与排期</h1>
+<h1>Сравнение конкурентов Claude Code GUI и план работ</h1>
 <p class="subtitle">claude-web &middot; opcode &middot; claudecodeui &middot; jetbrains-cc-gui</p>
 
 <div class="thesis">
-  <strong>核心判断：</strong>三个竞品中只有 jetbrains-cc-gui 有真正的模式创新——它把「每条消息自动携带用户正在看的代码」做成默认行为，回复质量的提升是肉眼可见的。
-  opcode 和 claudecodeui 本质是功能清单型项目（会话浏览器、用量面板、配置编辑器），能抄但抄了不改变产品档次。
+  <strong>Ключевой вывод:</strong> из трёх конкурентов только у jetbrains-cc-gui есть настоящее новаторство в подходе — он сделал «каждое сообщение автоматически несёт код, который пользователь сейчас смотрит» поведением по умолчанию, и рост качества ответов виден невооружённым глазом.
+  opcode и claudecodeui по сути проекты типа «список функций» (браузер сессий, панель использования, редактор конфигурации), их можно скопировать, но копирование не меняет класс продукта.
   <br><br>
-  因此排期原则：<strong>上下文自动注入 &gt; 配置面板堆叠</strong>。已砍掉 Hooks 编辑器、Command Palette、时间线可视化、多 Provider、插件系统、语音输入等 6 项低 ROI 需求。
+  Отсюда принцип планирования: <strong>автоматическая инъекция контекста &gt; нагромождение панелей конфигурации</strong>. Уже отрезаны 6 низкорентабельных требований: редактор Hooks, Command Palette, визуализация временной шкалы, несколько провайдеров, система плагинов, голосовой ввод.
 </div>
 
 <!-- projects -->
 <div class="projects">
   <div class="pcard pc1">
-    <div class="pn">claude-web（我们）</div>
-    <div class="ps">Python/FastAPI + 原生 JS<br>Agent SDK（Node 守护进程）+ CLI 回退<br>SSE 流式推送</div>
-    <div class="pm">server.py 15k 行 · index.html 26k 行</div>
+    <div class="pn">claude-web (мы)</div>
+    <div class="ps">Python/FastAPI + нативный JS<br>Agent SDK (демон Node) + откат к CLI<br>потоковая передача SSE</div>
+    <div class="pm">server.py 15k строк · index.html 26k строк</div>
   </div>
   <div class="pcard pc2">
     <div class="pn">opcode</div>
-    <div class="ps">Rust/Tauri + React<br>spawn `claude` CLI，stream-json<br>Tauri Events</div>
-    <div class="pm">桌面端 · 功能清单型</div>
+    <div class="ps">Rust/Tauri + React<br>spawn `claude` CLI, stream-json<br>Tauri Events</div>
+    <div class="pm">настольное приложение · тип «список функций»</div>
   </div>
   <div class="pcard pc3">
     <div class="pn">claudecodeui</div>
-    <div class="ps">Node/Express + React + Electron<br>Agent SDK<br>WebSocket 流式</div>
-    <div class="pm">1837 commits · 4 Provider · 8 语言</div>
+    <div class="ps">Node/Express + React + Electron<br>Agent SDK<br>потоковая передача WebSocket</div>
+    <div class="pm">1837 commits · 4 провайдера · 8 языков</div>
   </div>
   <div class="pcard pc4">
     <div class="pn">jetbrains-cc-gui</div>
-    <div class="ps">Kotlin/Java 插件 + React Webview<br>Agent SDK（NDJSON 守护进程）<br>JCEF 内嵌浏览器</div>
-    <div class="pm">328 Java 文件 · 6 Provider · <b>成熟度最高</b></div>
+    <div class="ps">Плагин Kotlin/Java + React Webview<br>Agent SDK (демон NDJSON)<br>встроенный браузер JCEF</div>
+    <div class="pm">328 файлов Java · 6 провайдеров · <b>наивысшая зрелость</b></div>
   </div>
 </div>
 
 <!-- comparison -->
-<h2 class="section">功能全面对比</h2>
-<p class="section-note">标 <span class="b b-s" style="font-size:0.73rem;">红色</span> 的是我们没有、且竞品证明有价值的缺口。<span class="b b-u" style="font-size:0.73rem;">紫色</span> 表示平台独有、无法直接复刻。</p>
+<h2 class="section">Полное сравнение функций</h2>
+<p class="section-note">Помеченное <span class="b b-s" style="font-size:0.73rem;">красным</span> — это пробелы, которые есть у нас и которые конкуренты доказали как ценные. <span class="b b-u" style="font-size:0.73rem;">Фиолетовый</span> означает уникальность платформы, которую нельзя напрямую воспроизвести.</p>
 <table>
 <thead><tr>
-  <th>能力</th><th>claude-web</th><th>opcode</th><th>claudecodeui</th><th>jetbrains-cc-gui</th>
+  <th>Возможность</th><th>claude-web</th><th>opcode</th><th>claudecodeui</th><th>jetbrains-cc-gui</th>
 </tr></thead>
 <tbody>
 
-<tr class="cat"><td colspan="5">核心交互</td></tr>
+<tr class="cat"><td colspan="5">Основное взаимодействие</td></tr>
 <tr>
-  <td>Agent 编码模式</td>
-  <td><span class="b b-y">SDK + CLI</span></td><td><span class="b b-y">CLI</span></td><td><span class="b b-y">SDK</span></td><td><span class="b b-y">SDK 守护进程</span></td>
+  <td>Режим агентного кодирования</td>
+  <td><span class="b b-y">SDK + CLI</span></td><td><span class="b b-y">CLI</span></td><td><span class="b b-y">SDK</span></td><td><span class="b b-y">демон SDK</span></td>
 </tr>
 <tr>
-  <td>非 Agent 聊天模式</td>
-  <td><span class="b b-p">CLI 聊天</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Неагентный режим чата</td>
+  <td><span class="b b-p">чат CLI</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>直连 API 纯对话</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Чистый диалог через прямой API</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>Plan Mode 审批</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">完整</span></td><td><span class="b b-y">完整</span></td>
+  <td>Утверждение Plan Mode</td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">полное</span></td><td><span class="b b-y">полное</span></td>
 </tr>
 <tr>
-  <td>权限逐条审批 + 规则</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-n">全跳过</span></td><td><span class="b b-y">规则化</span></td><td><span class="b b-y">IPC 硬化</span></td>
+  <td>Поштучное утверждение разрешений + правила</td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-n">всё пропускается</span></td><td><span class="b b-y">по правилам</span></td><td><span class="b b-y">укреплённый IPC</span></td>
 </tr>
 <tr>
-  <td>工具调用渲染</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-y">StreamMessage</span></td><td><span class="b b-y">Diff/Bash/Todo</span></td><td><span class="b b-y">Webview</span></td>
+  <td>Отрисовка вызовов инструментов</td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-y">StreamMessage</span></td><td><span class="b b-y">Diff/Bash/Todo</span></td><td><span class="b b-y">Webview</span></td>
 </tr>
 <tr>
-  <td>子 Agent 显示</td>
-  <td><span class="b b-y">芯片式</span></td><td><span class="b b-p">进程列表</span></td><td><span class="b b-y">分组容器</span></td><td><span class="b b-y">历史加载</span></td>
+  <td>Отображение субагентов</td>
+  <td><span class="b b-y">чипы</span></td><td><span class="b b-p">список процессов</span></td><td><span class="b b-y">контейнеры-группы</span></td><td><span class="b b-y">загрузка истории</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">上下文组装 —— 差异最大的区域</td></tr>
+<tr class="cat"><td colspan="5">Сборка контекста — область наибольших различий</td></tr>
 <tr class="gap-row">
-  <td>当前文件/光标/选区自动注入</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-s">每条消息自动</span></td>
+  <td>Автоинъекция текущего файла / курсора / выделения</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-s">автоматически в каждом сообщении</span></td>
 </tr>
 <tr class="gap-row">
-  <td>@ 文件提及自动补全</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-y">文件树</span></td><td><span class="b b-s">文件+终端+进程</span></td>
+  <td>Автодополнение упоминаний через @ файлов</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-y">дерево файлов</span></td><td><span class="b b-s">файл+терминал+процессы</span></td>
 </tr>
 <tr class="gap-row">
-  <td>运行时上下文（终端输出/运行进程）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-s">可 @ 引用</span></td>
+  <td>Контекст времени выполнения (вывод терминала / запущенные процессы)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-s">можно ссылаться через @</span></td>
 </tr>
 <tr>
-  <td>语义索引（类层次/引用查找）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-u">PSI（IDE 独有）</span></td>
+  <td>Семантический индекс (иерархия классов / поиск ссылок)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-u">PSI (только в IDE)</span></td>
 </tr>
 <tr>
   <td>Memories / Pinned Docs</td>
-  <td><span class="b b-y">全局+会话级</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td><span class="b b-y">глобальные+уровня сессии</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>Prompt Enhancer（发前优化）</td>
-  <td><span class="b b-p">独立优化器</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">输入框内嵌</span></td>
+  <td>Prompt Enhancer (оптимизация перед отправкой)</td>
+  <td><span class="b b-p">отдельный оптимизатор</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">встроен в поле ввода</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">编辑审批</td></tr>
+<tr class="cat"><td colspan="5">Утверждение правок</td></tr>
 <tr class="gap-row">
-  <td>Diff 可编辑后再接受</td>
-  <td><span class="b b-n">只读</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">只读</span></td>
-  <td><span class="b b-s">右侧可编辑</span></td>
+  <td>Diff можно отредактировать, затем принять</td>
+  <td><span class="b b-n">только чтение</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">только чтение</span></td>
+  <td><span class="b b-s">справа можно редактировать</span></td>
 </tr>
 <tr>
   <td>Plan Mode</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">完整</span></td><td><span class="b b-y">完整</span></td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">полное</span></td><td><span class="b b-y">полное</span></td>
 </tr>
 <tr>
-  <td>回滚 / Undo</td>
-  <td><span class="b b-y">git rewind</span></td><td><span class="b b-y">全量快照</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-u">IDE undo 栈</span></td>
+  <td>Откат / Undo</td>
+  <td><span class="b b-y">git rewind</span></td><td><span class="b b-y">полный снимок</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-u">стек undo IDE</span></td>
 </tr>
 <tr>
-  <td>Quick Fix（光标处快修）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Quick Fix (быстрое исправление под курсором)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
   <td><span class="b b-u">Cmd+Shift+Q</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">会话管理</td></tr>
+<tr class="cat"><td colspan="5">Управление сессиями</td></tr>
 <tr>
-  <td>会话恢复/续传</td>
-  <td><span class="b b-y">resume + fork</span></td><td><span class="b b-y">resume</span></td><td><span class="b b-y">ID 解耦</span></td><td><span class="b b-y">持久守护进程</span></td>
+  <td>Восстановление / продолжение сессии</td>
+  <td><span class="b b-y">resume + fork</span></td><td><span class="b b-y">resume</span></td><td><span class="b b-y">развязка по ID</span></td><td><span class="b b-y">постоянный демон</span></td>
 </tr>
 <tr>
-  <td>会话分支（Fork）</td>
-  <td><span class="b b-y">prepare-fork</span></td><td><span class="b b-y">fork_from_checkpoint</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Ветвление сессии (Fork)</td>
+  <td><span class="b b-y">prepare-fork</span></td><td><span class="b b-y">fork_from_checkpoint</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr class="gap-row">
-  <td>断线重连事件重放</td>
-  <td><span class="b b-n">断即丢</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-s">seq 重放</span></td><td><span class="b b-p">内存缓冲</span></td>
+  <td>Воспроизведение событий при переподключении после обрыва</td>
+  <td><span class="b b-n">при обрыве теряется</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-s">воспроизведение по seq</span></td><td><span class="b b-p">буфер в памяти</span></td>
 </tr>
 <tr>
-  <td>服务端消息队列</td>
-  <td><span class="b b-y">DB 队列</span></td><td><span class="b b-n">无</span></td><td><span class="b b-p">localStorage</span></td><td><span class="b b-n">无</span></td>
+  <td>Серверная очередь сообщений</td>
+  <td><span class="b b-y">очередь в БД</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-p">localStorage</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>CLI 原生会话导入</td>
-  <td><span class="b b-y">扫描导入</span></td><td><span class="b b-y">项目浏览器</span></td><td><span class="b b-y">Synchronizer</span></td><td><span class="b b-n">无</span></td>
+  <td>Импорт нативных сессий CLI</td>
+  <td><span class="b b-y">импорт сканированием</span></td><td><span class="b b-y">браузер проектов</span></td><td><span class="b b-y">Synchronizer</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>会话导出</td>
-  <td><span class="b b-y">JSON/Markdown</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">多格式</span></td><td><span class="b b-n">无</span></td>
+  <td>Экспорт сессий</td>
+  <td><span class="b b-y">JSON/Markdown</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">много форматов</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">工作流复用与配置</td></tr>
+<tr class="cat"><td colspan="5">Переиспользование рабочих процессов и конфигурация</td></tr>
 <tr class="gap-row">
-  <td>自定义 Agent 库（可导出分享）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-s">SQLite + .json</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-</tr>
-<tr class="gap-row">
-  <td>Session Templates（配置模板）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-s">模型+权限+cwd</span></td>
+  <td>Библиотека пользовательских Agent (с экспортом и обменом)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-s">SQLite + .json</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr class="gap-row">
-  <td>CLAUDE.md / Slash Commands 管理</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-y">完整 CRUD</span></td><td><span class="b b-y">自定义+历史</span></td><td><span class="b b-p">部分</span></td>
+  <td>Session Templates (шаблоны конфигурации)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-s">модель+разрешения+cwd</span></td>
+</tr>
+<tr class="gap-row">
+  <td>Управление CLAUDE.md / Slash Commands</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-y">полный CRUD</span></td><td><span class="b b-y">пользовательские+история</span></td><td><span class="b b-p">частично</span></td>
 </tr>
 <tr>
-  <td>Hooks 可视化编辑</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-y">5事件+模板</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Визуальное редактирование Hooks</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-y">5 событий+шаблоны</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>MCP 服务器管理</td>
-  <td><span class="b b-y">CRUD+健康检查</span></td><td><span class="b b-y">完整</span></td><td><span class="b b-y">读写 json</span></td><td><span class="b b-p">基础</span></td>
+  <td>Управление серверами MCP</td>
+  <td><span class="b b-y">CRUD+проверка работоспособности</span></td><td><span class="b b-y">полное</span></td><td><span class="b b-y">чтение-запись json</span></td><td><span class="b b-p">базовое</span></td>
 </tr>
 <tr>
-  <td>Settings 编辑</td>
-  <td><span class="b b-y">读写 settings</span></td><td><span class="b b-p">Hooks 部分</span></td><td><span class="b b-y">多 Tab 面板</span></td><td><span class="b b-p">基础</span></td>
+  <td>Редактирование Settings</td>
+  <td><span class="b b-y">чтение-запись settings</span></td><td><span class="b b-p">часть Hooks</span></td><td><span class="b b-y">панель с вкладками</span></td><td><span class="b b-p">базовое</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">开发工具</td></tr>
+<tr class="cat"><td colspan="5">Инструменты разработки</td></tr>
 <tr>
-  <td>文件树浏览</td>
-  <td><span class="b b-y">code-tree API</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">树+上传+图片</span></td><td><span class="b b-u">IDE 原生</span></td>
+  <td>Просмотр дерева файлов</td>
+  <td><span class="b b-y">code-tree API</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">дерево+загрузка+изображения</span></td><td><span class="b b-u">нативно в IDE</span></td>
 </tr>
 <tr>
-  <td>集成终端</td>
-  <td><span class="b b-y">PTY + xterm.js</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">node-pty + WS</span></td><td><span class="b b-u">IDE 终端</span></td>
+  <td>Встроенный терминал</td>
+  <td><span class="b b-y">PTY + xterm.js</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">node-pty + WS</span></td><td><span class="b b-u">терминал IDE</span></td>
 </tr>
 <tr>
-  <td>代码在线执行 (Run)</td>
-  <td><span class="b b-y">Python/JS</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Онлайн-выполнение кода (Run)</td>
+  <td><span class="b b-y">Python/JS</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>Checkpoint 检查点</td>
-  <td><span class="b b-y">git 快照</span></td><td><span class="b b-y">树形+4策略</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Контрольная точка (Checkpoint)</td>
+  <td><span class="b b-y">снимок git</span></td><td><span class="b b-y">древовидная+4 стратегии</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">数据与分析</td></tr>
+<tr class="cat"><td colspan="5">Данные и аналитика</td></tr>
 <tr>
-  <td>用量/费用 - 单会话</td>
-  <td><span class="b b-y">per-turn DB</span></td><td><span class="b b-y">JSONL 重算</span></td><td><span class="b b-y">TokenUsageSummary</span></td><td><span class="b b-y">分 Provider</span></td>
+  <td>Использование / расходы — одна сессия</td>
+  <td><span class="b b-y">per-turn DB</span></td><td><span class="b b-y">пересчёт из JSONL</span></td><td><span class="b b-y">TokenUsageSummary</span></td><td><span class="b b-y">по провайдерам</span></td>
 </tr>
 <tr class="gap-row">
-  <td>全局用量/成本仪表盘</td>
-  <td><span class="b b-p">仅 /api/stats</span></td><td><span class="b b-s">模型/日期/项目聚合</span></td><td><span class="b b-n">无</span></td><td><span class="b b-p">基础</span></td>
+  <td>Глобальный дашборд использования / стоимости</td>
+  <td><span class="b b-p">только /api/stats</span></td><td><span class="b b-s">агрегация по модели/дате/проекту</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-p">базовый</span></td>
 </tr>
 
 <tr class="cat"><td colspan="5">Git</td></tr>
 <tr class="gap-row">
-  <td>AI 生成 Commit Message</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
-  <td><span class="b b-s">读 staged，流式写入</span></td>
+  <td>AI-генерация Commit Message</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
+  <td><span class="b b-s">читает staged, потоковая запись</span></td>
 </tr>
 <tr>
-  <td>Diff / 分支 / Worktree</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">完整面板</span></td><td><span class="b b-y">IDE 原生</span></td>
+  <td>Diff / ветки / Worktree</td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">полная панель</span></td><td><span class="b b-y">нативно в IDE</span></td>
 </tr>
 <tr>
-  <td>Git Checkpoint（自动快照）</td>
-  <td><span class="b b-y">每轮自动</span></td><td><span class="b b-y">4策略选择</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Git Checkpoint (автоснимок)</td>
+  <td><span class="b b-y">автоматически каждый раунд</span></td><td><span class="b b-y">выбор из 4 стратегий</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 
-<tr class="cat"><td colspan="5">UX 与平台</td></tr>
+<tr class="cat"><td colspan="5">UX и платформа</td></tr>
 <tr>
-  <td>图片上传/粘贴</td>
-  <td><span class="b b-y">完整</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">拖放+粘贴</span></td><td><span class="b b-p">部分</span></td>
+  <td>Загрузка / вставка изображений</td>
+  <td><span class="b b-y">полное</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">drag&drop+вставка</span></td><td><span class="b b-p">частично</span></td>
 </tr>
 <tr>
-  <td>Command Palette（Cmd+K）</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">多页搜索</span></td><td><span class="b b-u">IDE 自有</span></td>
+  <td>Command Palette (Cmd+K)</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">поиск по страницам</span></td><td><span class="b b-u">собственный в IDE</span></td>
 </tr>
 <tr>
-  <td>语音输入 / TTS</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">Whisper+TTS</span></td><td><span class="b b-n">无</span></td>
+  <td>Голосовой ввод / TTS</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">Whisper+TTS</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>Todo 面板</td>
-  <td><span class="b b-y">进度条+高亮</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">工具渲染</span></td><td><span class="b b-y">有</span></td>
+  <td>Панель Todo</td>
+  <td><span class="b b-y">полоса прогресса+подсветка</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">отрисовка инструментов</span></td><td><span class="b b-y">есть</span></td>
 </tr>
 <tr>
-  <td>跟进建议</td>
-  <td><span class="b b-y">suggest-followups</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Предложения продолжить</td>
+  <td><span class="b b-y">suggest-followups</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>多 Provider 支持</td>
-  <td><span class="b b-n">仅 Claude</span></td><td><span class="b b-n">仅 Claude</span></td><td><span class="b b-y">4 Provider</span></td><td><span class="b b-y">6 Provider</span></td>
+  <td>Поддержка нескольких провайдеров</td>
+  <td><span class="b b-n">только Claude</span></td><td><span class="b b-n">только Claude</span></td><td><span class="b b-y">4 провайдера</span></td><td><span class="b b-y">6 провайдеров</span></td>
 </tr>
 <tr>
-  <td>i18n 多语言</td>
-  <td><span class="b b-n">中文固定</span></td><td><span class="b b-n">英文</span></td><td><span class="b b-y">8 语言</span></td><td><span class="b b-y">8 语言</span></td>
+  <td>i18n, много языков</td>
+  <td><span class="b b-n">фиксированно китайский</span></td><td><span class="b b-n">английский</span></td><td><span class="b b-y">8 языков</span></td><td><span class="b b-y">8 языков</span></td>
 </tr>
 <tr>
-  <td>移动端</td>
-  <td><span class="b b-y">响应式+OTP</span></td><td><span class="b b-n">桌面</span></td><td><span class="b b-p">Electron</span></td><td><span class="b b-n">IDE</span></td>
+  <td>Мобильные</td>
+  <td><span class="b b-y">адаптивность+OTP</span></td><td><span class="b b-n">настольные</span></td><td><span class="b b-p">Electron</span></td><td><span class="b b-n">IDE</span></td>
 </tr>
 <tr>
-  <td>桌面端</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-y">Tauri</span></td><td><span class="b b-y">Electron</span></td><td><span class="b b-u">IDE 插件</span></td>
+  <td>Настольные</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-y">Tauri</span></td><td><span class="b b-y">Electron</span></td><td><span class="b b-u">плагин IDE</span></td>
 </tr>
 <tr>
-  <td>浏览器扩展</td>
-  <td><span class="b b-y">Chrome 侧栏</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Расширение для браузера</td>
+  <td><span class="b b-y">Chrome боковая панель</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>插件系统</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">Tab+路由+WS</span></td><td><span class="b b-u">IDE 扩展点</span></td>
+  <td>Система плагинов</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">Tab+маршруты+WS</span></td><td><span class="b b-u">точки расширения IDE</span></td>
 </tr>
 <tr>
-  <td>Agent Loop（自动多轮）</td>
-  <td><span class="b b-y">20轮+Token预算</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td>
+  <td>Agent Loop (автоматические раунды)</td>
+  <td><span class="b b-y">20 раундов+бюджет токенов</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 <tr>
-  <td>Docker 沙箱</td>
-  <td><span class="b b-n">无</span></td><td><span class="b b-n">无</span></td><td><span class="b b-y">sbx CLI</span></td><td><span class="b b-n">无</span></td>
+  <td>Песочница Docker</td>
+  <td><span class="b b-n">нет</span></td><td><span class="b b-n">нет</span></td><td><span class="b b-y">sbx CLI</span></td><td><span class="b b-n">нет</span></td>
 </tr>
 </tbody>
 </table>
 
 <!-- Chat Mode Visual -->
-<h2 class="section">普通聊天模式对比</h2>
+<h2 class="section">Сравнение режима обычного чата</h2>
 <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem; margin-bottom:1.5rem;">
   <div style="background:#f0f6ff; border:1px solid #b6d0f7; border-radius:8px; padding:1rem; text-align:center;">
     <div style="font-weight:700; color:#0969da; margin-bottom:0.4rem;">claude-web</div>
-    <div style="font-size:0.85rem; color:#1a7f37; font-weight:600;">&#10003; 有</div>
-    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">workspace_mode="chat"<br>走 CLI 子进程<br>注入 memories + 系统提示</div>
+    <div style="font-size:0.85rem; color:#1a7f37; font-weight:600;">&#10003; есть</div>
+    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">workspace_mode="chat"<br>идёт через подпроцесс CLI<br>инъекция memories + системного промпта</div>
   </div>
   <div style="background:#fff8f0; border:1px solid #edd5b8; border-radius:8px; padding:1rem; text-align:center;">
     <div style="font-weight:700; color:#bc4c00; margin-bottom:0.4rem;">opcode</div>
-    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; 无</div>
-    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">所有交互都是 Agent 模式<br>--dangerously-skip-permissions</div>
+    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; нет</div>
+    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">все взаимодействия — агентный режим<br>--dangerously-skip-permissions</div>
   </div>
   <div style="background:#f0fff4; border:1px solid #b4dfbf; border-radius:8px; padding:1rem; text-align:center;">
     <div style="font-weight:700; color:#1a7f37; margin-bottom:0.4rem;">claudecodeui</div>
-    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; 无</div>
-    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">所有交互经 Agent SDK<br>最接近的是 Plan Mode</div>
+    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; нет</div>
+    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">все взаимодействия через Agent SDK<br>ближе всего Plan Mode</div>
   </div>
   <div style="background:#faf5ff; border:1px solid #d4bfea; border-radius:8px; padding:1rem; text-align:center;">
     <div style="font-weight:700; color:#8250df; margin-bottom:0.4rem;">jetbrains-cc-gui</div>
-    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; 无</div>
-    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">仅有一次性 commit msg 生成<br>（maxTurns=1，无会话）</div>
+    <div style="font-size:0.85rem; color:#cf222e; font-weight:600;">&#10007; нет</div>
+    <div style="font-size:0.78rem; color:#59636e; margin-top:0.3rem;">есть только разовая генерация commit msg<br>(maxTurns=1, без сессии)</div>
   </div>
 </div>
 <div style="background:#f6f8fa; border:1px solid #d1d9e0; border-radius:8px; padding:1rem 1.25rem; margin-bottom:2rem; font-size:0.87rem;">
-  <strong>结论：</strong>四个项目中只有我们有非 Agent 聊天模式。没有任何项目做了直连 Anthropic API 的纯对话。<br>
-  <strong>判断：</strong>短期不急。现有 CLI 聊天够用，"纯对话"不是 Claude Code GUI 核心场景。留到 v3.0 作为差异化亮点。
+  <strong>Вывод:</strong> из четырёх проектов неагентный режим чата есть только у нас. Ни один проект не сделал чистого диалога через прямой API Anthropic.<br>
+  <strong>Суждение:</strong> в ближайшее время не срочно. Существующего чата CLI достаточно, «чистый диалог» не является ключевым сценарием Claude Code GUI. Оставляем до v3.0 как точку дифференциации.
 </div>
 
 <!-- SCHEDULE -->
-<h2 class="section">排期</h2>
-<p class="section-note">7 项，按「改变产品档次的程度」而非「工程量」排序。周数为单人开发估算。</p>
+<h2 class="section">План работ</h2>
+<p class="section-note">7 пунктов, отсортированы по «степени изменения класса продукта», а не по «объёму работ». Количество недель — оценка для одного разработчика.</p>
 
 <div class="sched">
 
@@ -439,64 +439,64 @@ tr.cat td {
   <div class="rel-head">
     <div class="rh-left">
       <span class="ver">v2.3</span>
-      <span class="goal">上下文自动化 —— 让用户不再手动粘贴代码</span>
+      <span class="goal">Автоматизация контекста — пользователю больше не нужно вручную вставлять код</span>
     </div>
-    <span class="eta">2 周</span>
+    <span class="eta">2 недели</span>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">1. @ 提及系统（文件 / 终端 / 运行进程）</span>
+      <span class="item-name">1. Система упоминаний @ (файлы / терминал / запущенные процессы)</span>
       <span class="src src-jb">jetbrains</span><span class="src src-cc">claudecodeui</span>
-      <span class="est">约 3 天</span>
+      <span class="est">около 3 дней</span>
     </div>
     <div class="item-why">
-      输入 @ 弹出候选列表，可引用项目文件、当前终端最近输出、正在运行的进程。jetbrains 把终端和 Run 配置也做成可 @ 引用的伪文件，这是两个 web 竞品都没有的思路——「把当前正在发生的事附加给 AI」。
+      При вводе @ всплывает список кандидатов, можно ссылаться на файлы проекта, последний вывод текущего терминала, запущенные процессы. jetbrains сделал терминал и конфигурации Run тоже псевдо-файлами, на которые можно ссылаться через @, — этой идеи нет ни у одного из двух веб-конкурентов: «прикрепить к AI то, что происходит прямо сейчас».
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>前端：输入框 @ 触发 popup + 模糊过滤（复用现有 code-tree 接口）</li>
-        <li>后端：新增 <code>GET /api/sessions/{id}/mentionable</code>，返回文件树 + 活跃终端 + 运行进程</li>
-        <li>选中后插入 <code>@path/to/file</code> 标记，发送前后端展开为真实内容</li>
+        <li>Фронтенд: в поле ввода @ открывает popup + нечёткая фильтрация (переиспользовать существующий интерфейс code-tree)</li>
+        <li>Бэкенд: добавить <code>GET /api/sessions/{id}/mentionable</code>, возвращающий дерево файлов + активные терминалы + запущенные процессы</li>
+        <li>После выбора вставляется маркер <code>@path/to/file</code>, перед отправкой бэкенд разворачивает его в реальное содержимое</li>
       </ul>
     </div>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">2. 当前文件自动注入（可开关）</span>
+      <span class="item-name">2. Автоинъекция текущего файла (с переключателем)</span>
       <span class="src src-jb">jetbrains</span>
-      <span class="est">约 2 天</span>
+      <span class="est">около 2 дней</span>
     </div>
     <div class="item-why">
-      代码检查器里打开的文件、选中的行号范围，默认作为上下文附加到每条消息。这是 jetbrains 插件回复质量高的根本原因，不是模型差异。做成可开关避免长文件浪费 token。
+      Файл, открытый в инспекторе кода, и выделенный диапазон строк по умолчанию прикрепляются к каждому сообщению как контекст. Именно в этом коренная причина высокого качества ответов плагина jetbrains, а не в различии моделей. Делаем переключаемым, чтобы длинные файлы не тратили токены впустую.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>前端记录检查器当前文件 + 选中行范围，随 ChatRequest 一起发送</li>
-        <li>后端构造 <code>&lt;ide_context&gt;</code> 段落，附加到 system prompt（复用 memories 注入路径）</li>
-        <li>输入框旁放开关 + token 预估提示；超过阈值只注入选中片段</li>
+        <li>Фронтенд запоминает текущий файл инспектора + диапазон выделенных строк и отправляет их вместе с ChatRequest</li>
+        <li>Бэкенд формирует блок <code>&lt;ide_context&gt;</code> и добавляет его к system prompt (переиспользуя путь инъекции memories)</li>
+        <li>Рядом с полем ввода — переключатель + оценка токенов; сверх порога инжектируется только выделенный фрагмент</li>
       </ul>
     </div>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">3. SSE 断线重连重放</span>
+      <span class="item-name">3. Воспроизведение при переподключении SSE после обрыва</span>
       <span class="src src-cc">claudecodeui</span>
-      <span class="est">约 2 天</span>
+      <span class="est">около 2 дней</span>
     </div>
     <div class="item-why">
-      移动端 OTP 远程访问是我们的独有能力，但网络一断 SSE 就丢事件，长任务等于白跑。SSE 协议原生支持 <code>Last-Event-ID</code> 重连，不必换 WebSocket。这是可靠性欠债，不是新功能。
+      Удалённый доступ по OTP с мобильного — наша уникальная возможность, но при обрыве сети SSE теряет события, и длинная задача пропадает впустую. Протокол SSE нативно поддерживает переподключение через <code>Last-Event-ID</code>, переходить на WebSocket не нужно. Это долг по надёжности, а не новая функция.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>每个 SSE 事件加自增 <code>id:</code> 字段</li>
-        <li>服务端每会话维护 <code>deque(maxlen=5000)</code> 环形缓冲，5 分钟过期</li>
-        <li>重连时读 <code>Last-Event-ID</code> 请求头，补发缺失区间</li>
+        <li>Каждому событию SSE добавляется автоинкрементное поле <code>id:</code></li>
+        <li>Сервер поддерживает на каждую сессию кольцевой буфер <code>deque(maxlen=5000)</code> с истечением через 5 минут</li>
+        <li>При переподключении читается заголовок запроса <code>Last-Event-ID</code> и досылается недостающий диапазон</li>
       </ul>
     </div>
   </div>
@@ -506,64 +506,64 @@ tr.cat td {
   <div class="rel-head">
     <div class="rh-left">
       <span class="ver">v2.4</span>
-      <span class="goal">工作流复用与审批体验</span>
+      <span class="goal">Переиспользование рабочих процессов и опыт утверждения</span>
     </div>
-    <span class="eta">3 周</span>
+    <span class="eta">3 недели</span>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">4. 自定义 Agent 库 + 会话模板</span>
+      <span class="item-name">4. Библиотека пользовательских Agent + шаблоны сессий</span>
       <span class="src src-op">opcode</span><span class="src src-jb">jetbrains</span>
-      <span class="est">约 1 周</span>
+      <span class="est">около 1 недели</span>
     </div>
     <div class="item-why">
-      opcode 的 Agent 定义（名称/图标/系统提示/模型/权限/hooks，导出 .json 分享）+ jetbrains 的会话模板（模型/权限模式/cwd 存成命名快照）合起来就是用户自定义的可复用工作流。CLI 做不到，且是团队版 Agent 市场的地基。
+      Определения Agent в opcode (имя/значок/системный промпт/модель/разрешения/hooks с экспортом .json для обмена) вместе с шаблонами сессий jetbrains (модель/режим разрешений/cwd, сохранённые как именованный снимок) дают пользовательские переиспользуемые рабочие процессы. CLI этого не может, и это основа для Agent-маркетплейса командной версии.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>表 <code>agent_templates</code>：name / icon / system_prompt / model / permission_mode / default_task / cwd</li>
-        <li>CRUD + 克隆 + 导出导入 .json</li>
-        <li>新建会话时「从模板创建」一键填充；system_prompt 走现有 append-system-prompt 通道</li>
+        <li>Таблица <code>agent_templates</code>: name / icon / system_prompt / model / permission_mode / default_task / cwd</li>
+        <li>CRUD + клонирование + экспорт-импорт .json</li>
+        <li>При создании сессии «создать из шаблона» заполняет в один клик; system_prompt идёт через существующий канал append-system-prompt</li>
       </ul>
     </div>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">5. Diff 可编辑后接受</span>
+      <span class="item-name">5. Diff можно отредактировать, затем принять</span>
       <span class="src src-jb">jetbrains</span>
-      <span class="est">约 4 天</span>
+      <span class="est">около 4 дней</span>
     </div>
     <div class="item-why">
-      现在权限审批只能全盘接受或拒绝。jetbrains 让右侧 diff 可编辑，用户微调 AI 的改动后再应用——消除了「大体对但有一处不对，只能拒绝重来」的困境。三个竞品里只有它做了。
+      Сейчас при утверждении разрешений можно только принять всё или отклонить. jetbrains позволяет редактировать diff справа: пользователь слегка правит изменения AI и затем применяет их — это устраняет тупик «в целом верно, но в одном месте не так, остаётся только отклонить и начать заново». Из трёх конкурентов это сделал только он.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>权限预览接口已有（preview-change），前端右栏换成可编辑编辑器</li>
-        <li>新增「接受修改版」：把编辑后内容作为审批结果回传，覆盖原 tool 入参</li>
-        <li>需在 bridge 层支持带修改内容的 approve</li>
+        <li>Интерфейс предпросмотра разрешений уже есть (preview-change); правую колонку фронтенда заменяем на редактируемый редактор</li>
+        <li>Добавить «принять изменённую версию»: отредактированное содержимое возвращается как результат утверждения и перекрывает исходные входные параметры tool</li>
+        <li>Нужна поддержка approve с изменённым содержимым на уровне bridge</li>
       </ul>
     </div>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">6. AI 生成 Commit Message</span>
+      <span class="item-name">6. AI-генерация Commit Message</span>
       <span class="src src-jb">jetbrains</span>
-      <span class="est">约 2 天</span>
+      <span class="est">около 2 дней</span>
     </div>
     <div class="item-why">
-      读 staged diff，一次性调用（maxTurns=1，不建会话、不留历史），token 流式写入输入框。工程量很小但演示效果好，且天天用得上。三个竞品里只有 jetbrains 有任何 VCS 写入集成。
+      Читает staged diff, разовый вызов (maxTurns=1, сессия не создаётся, история не сохраняется), токены потоково пишутся в поле ввода. Объём работ небольшой, но демонстрационный эффект хороший и нужен каждый день. Из трёх конкурентов хоть какая-то интеграция записи в VCS есть только у jetbrains.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>Git 面板加按钮 → <code>POST /api/git/commit-message</code></li>
-        <li>后端读 staged diff，走 bridge 一次性 query（不落 session 历史）</li>
-        <li>SSE 流式回传，前端逐 token 写入 message 输入框</li>
+        <li>Кнопка в панели Git → <code>POST /api/git/commit-message</code></li>
+        <li>Бэкенд читает staged diff и выполняет разовый query через bridge (в историю session не пишется)</li>
+        <li>Потоковая передача через SSE, фронтенд по токенам пишет в поле ввода message</li>
       </ul>
     </div>
   </div>
@@ -573,45 +573,45 @@ tr.cat td {
   <div class="rel-head">
     <div class="rh-left">
       <span class="ver">v2.5</span>
-      <span class="goal">配置可视化与成本透明</span>
+      <span class="goal">Визуализация конфигурации и прозрачность стоимости</span>
     </div>
-    <span class="eta">1.5 周</span>
+    <span class="eta">1.5 недели</span>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">7. CLAUDE.md 与 Slash Commands 管理</span>
+      <span class="item-name">7. Управление CLAUDE.md и Slash Commands</span>
       <span class="src src-op">opcode</span><span class="src src-cc">claudecodeui</span>
-      <span class="est">约 4 天</span>
+      <span class="est">около 4 дней</span>
     </div>
     <div class="item-why">
-      CLAUDE.md 是 Claude Code 用户改得最频繁的文件，现在必须跳编辑器。递归扫描项目内所有 CLAUDE.md + 扫描 <code>.claude/commands/*.md</code>（解析 YAML frontmatter）做成面板即可。
-      <br><span style="color:#59636e;">注：opcode 的 Hooks 可视化编辑器已砍——实际改动频率远低于 CLAUDE.md，投入产出不划算。</span>
+      CLAUDE.md — файл, который пользователи Claude Code меняют чаще всего, а сейчас для этого приходится прыгать в редактор. Достаточно сделать панель: рекурсивное сканирование всех CLAUDE.md внутри проекта + сканирование <code>.claude/commands/*.md</code> (с разбором YAML frontmatter).
+      <br><span style="color:#59636e;">Примечание: визуальный редактор Hooks из opcode уже отрезан — фактическая частота изменений намного ниже, чем у CLAUDE.md, и вложения не окупаются.</span>
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>递归查找 CLAUDE.md（user / project 双作用域），markdown 编辑器 + 保存</li>
-        <li>扫描 <code>~/.claude/commands/</code> 与 <code>.claude/commands/</code>，解析 frontmatter 的 description / allowed-tools</li>
+        <li>Рекурсивный поиск CLAUDE.md (две области действия user / project), markdown-редактор + сохранение</li>
+        <li>Сканирование <code>~/.claude/commands/</code> и <code>.claude/commands/</code> с разбором description / allowed-tools из frontmatter</li>
       </ul>
     </div>
   </div>
 
   <div class="item">
     <div class="item-top">
-      <span class="item-name">8. 全局用量/成本仪表盘</span>
+      <span class="item-name">8. Глобальный дашборд использования / стоимости</span>
       <span class="src src-op">opcode</span>
-      <span class="est">约 3 天</span>
+      <span class="est">около 3 дней</span>
     </div>
     <div class="item-why">
-      我们已有单轮 usage 记录，缺的是跨会话聚合视图。opcode 的做法可直接照搬：遍历 <code>~/.claude/projects/**/*.jsonl</code>，按 <code>message.id + requestId</code> 去重，按模型/日期/项目聚合，缺 costUSD 时用价格表兜底。团队版预算管控的前置件。
+      У нас уже есть запись usage за один раунд, не хватает агрегированного вида по всем сессиям. Подход opcode можно просто повторить: пройти по <code>~/.claude/projects/**/*.jsonl</code>, дедуплицировать по <code>message.id + requestId</code>, агрегировать по модели/дате/проекту, при отсутствии costUSD подставлять значение из таблицы цен. Предшественник контроля бюджета командной версии.
     </div>
     <div class="item-how">
-      <b>实现</b>
+      <b>Реализация</b>
       <ul>
-        <li>复用现有 session_usage 表做主数据源，JSONL 扫描补齐 CLI 原生会话</li>
-        <li>去重键 <code>message.id + requestId</code>；价格表作为 costUSD 缺失时的兜底</li>
-        <li>面板：总览 + 按模型 / 按日期 / 按项目，支持日期范围过滤</li>
+        <li>Переиспользовать существующую таблицу session_usage как основной источник данных, сканированием JSONL дополнить нативные сессии CLI</li>
+        <li>Ключ дедупликации <code>message.id + requestId</code>; таблица цен как подстановка при отсутствии costUSD</li>
+        <li>Панель: обзор + по модели / по дате / по проекту, с фильтром по диапазону дат</li>
       </ul>
     </div>
   </div>
@@ -620,41 +620,41 @@ tr.cat td {
 </div>
 
 <!-- dropped -->
-<h2 class="section">已砍需求</h2>
-<p class="section-note">看过但决定不做，记录原因避免以后重复讨论。</p>
+<h2 class="section">Отрезанные требования</h2>
+<p class="section-note">Рассмотрели, но решили не делать; фиксируем причины, чтобы не обсуждать повторно.</p>
 <div class="dropped">
 <table>
-<thead><tr><th>需求</th><th>来源</th><th>不做的原因</th></tr></thead>
+<thead><tr><th>Требование</th><th>Источник</th><th>Причина отказа</th></tr></thead>
 <tbody>
-<tr><td>Hooks 可视化编辑器</td><td>opcode</td><td>纯配置面板。用户改 hooks 的频率远低于改 CLAUDE.md，同样工程量下优先级明显更低。</td></tr>
-<tr><td>Command Palette（Cmd+K）</td><td>claudecodeui</td><td>nice-to-have 而非痛点。当前侧栏导航已够用，浏览器本身也有搜索。</td></tr>
-<tr><td>时间线可视化 + 分支</td><td>opcode</td><td>已有 git checkpoint + rewind。做树形可视化工程量大，不如先把现有 rewind 的交互打磨顺。</td></tr>
-<tr><td>多 Provider（Codex/Grok/Kimi）</td><td>jetbrains / claudecodeui</td><td>架构改动大，且会模糊「Claude Code 的 GUI」这个定位。</td></tr>
-<tr><td>插件系统</td><td>claudecodeui</td><td>26k 行单文件前端下不现实。要做得先组件化重构，那是独立的大工程。</td></tr>
-<tr><td>语音输入 / TTS</td><td>claudecodeui</td><td>依赖外部 STT 服务。移动端资源应优先投给断线重连这类可靠性问题。</td></tr>
-<tr><td>PSI 语义索引</td><td>jetbrains</td><td>依赖宿主 IDE 的符号索引，web 应用没有等价物。除非未来接 LSP，否则无法复刻。</td></tr>
-<tr><td>直连 API 纯对话模式</td><td>四家都没有</td><td>确实是空白，但不是 Claude Code GUI 的核心场景。现有 CLI 聊天模式够用，留到 v3.0 再评估。</td></tr>
+<tr><td>Визуальный редактор Hooks</td><td>opcode</td><td>Чистая панель конфигурации. Пользователи меняют hooks намного реже, чем CLAUDE.md, при том же объёме работ приоритет явно ниже.</td></tr>
+<tr><td>Command Palette (Cmd+K)</td><td>claudecodeui</td><td>nice-to-have, а не болевая точка. Текущей навигации по боковой панели достаточно, да и в самом браузере есть поиск.</td></tr>
+<tr><td>Визуализация временной шкалы + ветвление</td><td>opcode</td><td>Уже есть git checkpoint + rewind. Древовидная визуализация объёмна по работам; лучше сначала отшлифовать взаимодействие с существующим rewind.</td></tr>
+<tr><td>Несколько провайдеров (Codex/Grok/Kimi)</td><td>jetbrains / claudecodeui</td><td>Большие изменения архитектуры, к тому же размывают позиционирование «GUI для Claude Code».</td></tr>
+<tr><td>Система плагинов</td><td>claudecodeui</td><td>Нереально при одностраничном фронтенде на 26k строк. Чтобы сделать это, сначала нужен рефакторинг на компоненты, а это отдельный большой проект.</td></tr>
+<tr><td>Голосовой ввод / TTS</td><td>claudecodeui</td><td>Зависит от внешнего сервиса STT. Мобильные ресурсы стоит вкладывать в первую очередь в надёжность вроде переподключения после обрыва.</td></tr>
+<tr><td>Семантический индекс PSI</td><td>jetbrains</td><td>Зависит от индекса символов хост-IDE, у веб-приложения нет эквивалента. Воспроизвести невозможно, если в будущем не подключить LSP.</td></tr>
+<tr><td>Режим чистого диалога через прямой API</td><td>нет ни у одной из четырёх</td><td>Действительно белое пятно, но это не ключевой сценарий Claude Code GUI. Существующего режима чата CLI достаточно, оценим на v3.0.</td></tr>
 </tbody>
 </table>
 </div>
 
 <!-- moat -->
-<h2 class="section">我们已有的护城河</h2>
-<p class="section-note">三个竞品都没有的能力，做新功能时注意不要削弱这些。</p>
+<h2 class="section">Наши существующие преимущества (moat)</h2>
+<p class="section-note">Возможности, которых нет ни у одного из трёх конкурентов; при разработке новых функций следите, чтобы их не ослабить.</p>
 <div class="moat">
-  <div class="moat-item"><div class="mn">Agent Loop 自动多轮</div><div class="md">20 轮上限 + token 预算 + 测试命令验证。唯一支持无人值守连续执行的 GUI。</div></div>
-  <div class="moat-item"><div class="mn">移动端 OTP 远程访问</div><div class="md">访问码 / TOTP + 路径白名单。其他三家全是本地 only。</div></div>
-  <div class="moat-item"><div class="mn">Chrome 浏览器扩展</div><div class="md">侧栏形态，只读 / 完整双模式。唯一能嵌进浏览器工作流的方案。</div></div>
-  <div class="moat-item"><div class="mn">Memories + Pinned Docs</div><div class="md">跨会话持久记忆 + 会话级固定文档注入。</div></div>
-  <div class="moat-item"><div class="mn">Prompt 优化器</div><div class="md">样本采集 + 规则管理 + 重写。系统化的 prompt engineering 工具。</div></div>
-  <div class="moat-item"><div class="mn">代码块在线执行</div><div class="md">Run 按钮直接跑 Python/JS，不必手动复制到终端。</div></div>
-  <div class="moat-item"><div class="mn">服务端消息队列</div><div class="md">DB 持久化排队 + 顺序派发。claudecodeui 只有客户端 localStorage。</div></div>
-  <div class="moat-item"><div class="mn">浏览器自动化验证</div><div class="md">Recipe 驱动的前端改动验证与证据留存。</div></div>
+  <div class="moat-item"><div class="mn">Автоматические раунды Agent Loop</div><div class="md">Лимит 20 раундов + бюджет токенов + проверка тестовыми командами. Единственный GUI, поддерживающий непрерывное выполнение без присмотра.</div></div>
+  <div class="moat-item"><div class="mn">Удалённый доступ по OTP с мобильных</div><div class="md">Код доступа / TOTP + белый список путей. Остальные три — все только локально.</div></div>
+  <div class="moat-item"><div class="mn">Расширение для браузера Chrome</div><div class="md">Форма боковой панели, двойной режим только чтение / полный. Единственное решение, встраиваемое в рабочий процесс браузера.</div></div>
+  <div class="moat-item"><div class="mn">Memories + Pinned Docs</div><div class="md">Межсессионная постоянная память + инъекция закреплённых документов уровня сессии.</div></div>
+  <div class="moat-item"><div class="mn">Оптимизатор промптов</div><div class="md">Сбор образцов + управление правилами + переписывание. Систематизированный инструмент prompt engineering.</div></div>
+  <div class="moat-item"><div class="mn">Онлайн-выполнение блоков кода</div><div class="md">Кнопка Run сразу запускает Python/JS, не нужно вручную копировать в терминал.</div></div>
+  <div class="moat-item"><div class="mn">Серверная очередь сообщений</div><div class="md">Постоянная очередь в БД + последовательная диспетчеризация. У claudecodeui только клиентский localStorage.</div></div>
+  <div class="moat-item"><div class="mn">Автоматизированная проверка в браузере</div><div class="md">Проверка фронтенд-изменений на основе Recipe с сохранением доказательств.</div></div>
 </div>
 
 <div class="footer">
-  生成于 2026-08-15 &nbsp;|&nbsp; 排期共 6.5 周（8 项）&nbsp;|&nbsp; 已砍 8 项<br>
-  数据来源：本地代码库静态分析（claude-web / opcode / claudecodeui / jetbrains-cc-gui）
+  Сгенерировано 2026-08-15 &nbsp;|&nbsp; план всего 6.5 недель (8 пунктов)&nbsp;|&nbsp; отрезано 8 пунктов<br>
+  Источник данных: статический анализ локальной кодовой базы (claude-web / opcode / claudecodeui / jetbrains-cc-gui)
 </div>
 
 </div>

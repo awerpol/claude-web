@@ -1,6 +1,6 @@
 """Tests for remote (HTTP) MCP health checks.
 
-The health endpoint used to bail out with "只支持 stdio" for remote servers,
+The health endpoint used to bail out with "только stdio" for remote servers,
 so a connector added from the catalog could never be verified. These tests run
 a real local HTTP MCP endpoint (streamable-http style JSON responses) and check
 that the probe reports tools, and that secret refs are resolved before use.
@@ -43,8 +43,8 @@ class _McpHandler(BaseHTTPRequestHandler):
                 "id": body.get("id"),
                 "result": {
                     "tools": [
-                        {"name": "get_quote", "description": "查询行情"},
-                        {"name": "get_fund", "description": "查询基金"},
+                        {"name": "get_quote", "description": "Запрос котировок"},
+                        {"name": "get_fund", "description": "Запрос фондов"},
                     ]
                 },
             }

@@ -36,7 +36,7 @@ async function load() {
     fields[key].value = settings[key] || "";
   }
   updateModeFields();
-  setStatus("已加载");
+  setStatus("Загружено");
   testConnection({ silent: true });
 }
 
@@ -52,12 +52,12 @@ async function save() {
     return;
   }
   if (next.assistantMode === "code" && !next.cwd) {
-    setStatus("Code 模式需要填写项目目录");
+    setStatus("В режиме Code нужно указать каталог проекта");
     fields.cwd.focus();
     return;
   }
   await chrome.storage.sync.set(next);
-  setStatus("已保存");
+  setStatus("Сохранено");
   testConnection({ silent: true });
 }
 
@@ -67,25 +67,25 @@ async function testConnection(options = {}) {
     serviceUrl = assertLocalServiceUrl(fields.serviceUrl.value);
   } catch (error) {
     setStatus(error.message || String(error));
-    setConnectionBadge("地址错误", "bad");
+    setConnectionBadge("Неверный адрес", "bad");
     return;
   }
-  if (!options.silent) setStatus("测试中...");
-  setConnectionBadge("测试中");
+  if (!options.silent) setStatus("Проверка...");
+  setConnectionBadge("Проверка");
   try {
     const resp = await fetch(`${serviceUrl}/api/extension/status`);
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.detail || `HTTP ${resp.status}`);
     if (data.token_configured) {
-      setStatus("连接成功，Token 已启用");
-      setConnectionBadge("可用", "ok");
+      setStatus("Подключение успешно, Token активен");
+      setConnectionBadge("Доступно", "ok");
     } else {
-      setStatus("连接成功，但服务端还未生成 Token");
-      setConnectionBadge("待 Token");
+      setStatus("Подключение успешно, но Token на сервере ещё не создан");
+      setConnectionBadge("Ожидает Token");
     }
   } catch (error) {
-    setStatus(`连接失败：${error.message || error}`);
-    setConnectionBadge("失败", "bad");
+    setStatus(`Ошибка подключения: ${error.message || error}`);
+    setConnectionBadge("Ошибка", "bad");
   }
 }
 
@@ -94,8 +94,8 @@ $("testBtn").addEventListener("click", () => testConnection());
 fields.assistantMode.addEventListener("change", updateModeFields);
 for (const input of Object.values(fields)) {
   input.addEventListener("input", () => {
-    setStatus("有未保存修改");
-    setConnectionBadge("未保存");
+    setStatus("Есть несохранённые изменения");
+    setConnectionBadge("Не сохранено");
   });
 }
 

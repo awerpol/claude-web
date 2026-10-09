@@ -195,7 +195,7 @@ class CodeBrowserValidationRegistry:
                 (recipe_id,),
             ).fetchone()
         if row is None:
-            raise CodeBrowserValidationError("recipe_not_found", "浏览器验收 Recipe 不存在")
+            raise CodeBrowserValidationError("recipe_not_found", "Recipe приёмочного теста браузера не существует")
         self._require_owner(session_id, root, row)
         return self._recipe_payload(dict(row))
 
@@ -255,7 +255,7 @@ class CodeBrowserValidationRegistry:
                 (run_id,),
             ).fetchone()
         if row is None:
-            raise CodeBrowserValidationError("run_not_found", "浏览器验收运行不存在")
+            raise CodeBrowserValidationError("run_not_found", "Запуск приёмочного теста браузера не существует")
         self._require_owner(session_id, root, row)
         return self._run_payload(dict(row), self._evidence_for(run_id))
 
@@ -271,19 +271,19 @@ class CodeBrowserValidationRegistry:
         run = self.get_run(session_id, run_id)
         target = str(status or "").strip()
         if target not in RUN_STATUSES or target not in RUN_TRANSITIONS.get(str(run["status"]), set()):
-            raise CodeBrowserValidationError("invalid_run_transition", "浏览器验收运行状态转换无效")
+            raise CodeBrowserValidationError("invalid_run_transition", "Недействительный переход состояния запуска приёмочного теста браузера")
         normalized_reason_code = self._text(reason_code, "reason code", 80)
         normalized_reason = self._text(reason, "reason", 1000)
         if target == "failed" and normalized_reason_code in {
             "browser_unavailable", "extension_unavailable", "server_unavailable",
         }:
             raise CodeBrowserValidationError(
-                "unavailable_must_skip", "验收环境不可用时必须记录为 skipped"
+                "unavailable_must_skip", "При недоступности среды проверки необходимо записать как skipped"
             )
         if target == "passed":
             evidence = run.get("evidence")
             if not evidence:
-                raise CodeBrowserValidationError("evidence_required", "通过验收前必须记录证据")
+                raise CodeBrowserValidationError("evidence_required", "Перед прохождением проверки необходимо записать доказательства")
             recipe = self.get_recipe(session_id, str(run["recipe_id"]))
             failed = any(
                 item.get("status") == "failed"
@@ -293,7 +293,7 @@ class CodeBrowserValidationRegistry:
                 ]
             )
             if failed:
-                raise CodeBrowserValidationError("failed_evidence", "存在失败证据，不能标记为 passed")
+                raise CodeBrowserValidationError("failed_evidence", "Есть доказательства сбоя, нельзя отметить как passed")
             expected_assertions = {item["id"] for item in recipe["assertions"]}
             passed_assertions = {
                 item["assertion_id"]
@@ -302,7 +302,7 @@ class CodeBrowserValidationRegistry:
             }
             if not expected_assertions.issubset(passed_assertions):
                 raise CodeBrowserValidationError(
-                    "assertions_incomplete", "Recipe 断言尚未全部通过"
+                    "assertions_incomplete", "Не все утверждения Recipe пройдены"
                 )
         now = time.time()
         started_at = now if target == "running" and not run.get("started_at") else run.get("started_at")
@@ -344,7 +344,7 @@ class CodeBrowserValidationRegistry:
     ) -> Dict[str, object]:
         run = self.get_run(session_id, run_id)
         if run["status"] != "running":
-            raise CodeBrowserValidationError("run_not_recording", "当前运行状态不能记录验收证据")
+            raise CodeBrowserValidationError("run_not_recording", "Текущее состояние запуска не позволяет записывать доказательства проверки")
         root = self._code_session_root(session_id)
         recipe = self.get_recipe(session_id, str(run["recipe_id"]))
         normalized_steps = self._results(step_results, "step")
@@ -352,9 +352,9 @@ class CodeBrowserValidationRegistry:
         known_step_ids = {item["id"] for item in recipe["steps"]}
         known_assertion_ids = {item["id"] for item in recipe["assertions"]}
         if any(item["step_id"] not in known_step_ids for item in normalized_steps):
-            raise CodeBrowserValidationError("invalid_evidence", "证据引用了未知 Recipe 步骤")
+            raise CodeBrowserValidationError("invalid_evidence", "Доказательство ссылается на неизвестный шаг Recipe")
         if any(item["assertion_id"] not in known_assertion_ids for item in normalized_assertions):
-            raise CodeBrowserValidationError("invalid_evidence", "证据引用了未知 Recipe 断言")
+            raise CodeBrowserValidationError("invalid_evidence", "Доказательство ссылается на неизвестное утверждение Recipe")
         evidence = {
             "step_results": normalized_steps,
             "assertion_results": normalized_assertions,
@@ -365,9 +365,9 @@ class CodeBrowserValidationRegistry:
         try:
             encoded = json.dumps(evidence, ensure_ascii=False, separators=(",", ":"))
         except (TypeError, ValueError) as exc:
-            raise CodeBrowserValidationError("invalid_evidence", "浏览器验收证据必须可序列化") from exc
+            raise CodeBrowserValidationError("invalid_evidence", "Доказательства приёмочного теста браузера должны быть сериализуемыми") from exc
         if len(encoded.encode("utf-8")) > MAX_EVIDENCE_BYTES:
-            raise CodeBrowserValidationError("evidence_too_large", "浏览器验收证据超过大小限制")
+            raise CodeBrowserValidationError("evidence_too_large", "Доказательства приёмочного теста браузера превышают ограничение размера")
         now = time.time()
         with self.connect(immediate=True) as conn:
             conn.execute(
@@ -390,31 +390,31 @@ class CodeBrowserValidationRegistry:
                 (session_id,),
             ).fetchone()
         if row is None:
-            raise CodeBrowserValidationError("session_not_found", "Code 会话不存在")
+            raise CodeBrowserValidationError("session_not_found", "Сессия Code не существует")
         if str(row["workspace_mode"] or "chat") != "code":
-            raise CodeBrowserValidationError("code_session_required", "浏览器验收仅支持 Code 会话")
+            raise CodeBrowserValidationError("code_session_required", "Приёмочный тест браузера поддерживается только в сессиях Code")
         raw_cwd = str(row["cwd"] or "").strip()
         if not raw_cwd:
-            raise CodeBrowserValidationError("project_required", "Code 会话尚未绑定项目目录")
+            raise CodeBrowserValidationError("project_required", "Сессия Code ещё не привязана к каталогу проекта")
         root = Path(os.path.expanduser(raw_cwd)).resolve()
         if not root.is_dir() or root in {Path.home().resolve(), Path(root.anchor)}:
-            raise CodeBrowserValidationError("project_required", "Code 会话项目目录不可用")
+            raise CodeBrowserValidationError("project_required", "Каталог проекта сессии Code недоступен")
         return root
 
     @staticmethod
     def _require_owner(session_id: str, root: Path, row: sqlite3.Row) -> None:
         if str(row["owner_session_id"]) != session_id:
-            raise CodeBrowserValidationError("validation_forbidden", "验收记录不属于当前 Code 会话")
+            raise CodeBrowserValidationError("validation_forbidden", "Запись проверки не принадлежит текущей сессии Code")
         if str(row["canonical_cwd"]) != str(root):
-            raise CodeBrowserValidationError("workspace_changed", "Code 会话项目目录已经变化")
+            raise CodeBrowserValidationError("workspace_changed", "Каталог проекта сессии Code изменился")
 
     @staticmethod
     def _text(value: object, field: str, limit: int, *, required: bool = False) -> str:
         text = str(value or "").strip()
         if required and not text:
-            raise CodeBrowserValidationError("invalid_recipe", f"{field} 不能为空")
+            raise CodeBrowserValidationError("invalid_recipe", f"{field} не может быть пустым")
         if len(text) > limit:
-            raise CodeBrowserValidationError("value_too_large", f"{field} 超过长度限制")
+            raise CodeBrowserValidationError("value_too_large", f"{field} превышает ограничение длины")
         return text
 
     @classmethod
@@ -422,43 +422,43 @@ class CodeBrowserValidationRegistry:
         text = cls._text(value, "URL", 2048, required=True)
         parsed = urlparse(text)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-            raise CodeBrowserValidationError("invalid_url", "验收 URL 仅支持 http/https")
+            raise CodeBrowserValidationError("invalid_url", "URL проверки поддерживает только http/https")
         if parsed.username or parsed.password:
-            raise CodeBrowserValidationError("invalid_url", "验收 URL 不能包含内嵌凭证")
+            raise CodeBrowserValidationError("invalid_url", "URL проверки не может содержать встроенные учётные данные")
         return text
 
     @staticmethod
     def _viewport(value: Dict[str, object]) -> Dict[str, object]:
         if not isinstance(value, dict) or set(value) - {"width", "height", "device_scale_factor"}:
-            raise CodeBrowserValidationError("invalid_viewport", "viewport 字段无效")
+            raise CodeBrowserValidationError("invalid_viewport", "Недействительное поле viewport")
         try:
             width = int(value.get("width") or 0)
             height = int(value.get("height") or 0)
             scale = float(value.get("device_scale_factor") or 1)
         except (TypeError, ValueError) as exc:
-            raise CodeBrowserValidationError("invalid_viewport", "viewport 数值无效") from exc
+            raise CodeBrowserValidationError("invalid_viewport", "Недействительное значение viewport") from exc
         if not 320 <= width <= 3840 or not 320 <= height <= 2160 or not 0.5 <= scale <= 4:
-            raise CodeBrowserValidationError("invalid_viewport", "viewport 超出允许范围")
+            raise CodeBrowserValidationError("invalid_viewport", "viewport вне допустимого диапазона")
         return {"width": width, "height": height, "device_scale_factor": scale}
 
     @classmethod
     def _steps(cls, values: Sequence[Dict[str, object]]) -> List[Dict[str, object]]:
         if not isinstance(values, (list, tuple)) or not 1 <= len(values) <= MAX_RECIPE_STEPS:
-            raise CodeBrowserValidationError("invalid_steps", "Recipe 必须包含 1-50 个步骤")
+            raise CodeBrowserValidationError("invalid_steps", "Recipe должен содержать от 1 до 50 шагов")
         allowed = {"id", "title", "action", "target", "value", "timeout_ms"}
         result = []
         for index, item in enumerate(values, 1):
             if not isinstance(item, dict) or set(item) - allowed:
-                raise CodeBrowserValidationError("invalid_steps", "Recipe 步骤字段无效")
+                raise CodeBrowserValidationError("invalid_steps", "Недействительное поле шага Recipe")
             action = cls._text(item.get("action"), "step action", 40, required=True)
             if action not in STEP_ACTIONS:
-                raise CodeBrowserValidationError("invalid_steps", "Recipe 步骤动作无效")
+                raise CodeBrowserValidationError("invalid_steps", "Недействительное действие шага Recipe")
             try:
                 timeout_ms = int(item.get("timeout_ms") or 10_000)
             except (TypeError, ValueError) as exc:
-                raise CodeBrowserValidationError("invalid_steps", "Recipe 步骤超时无效") from exc
+                raise CodeBrowserValidationError("invalid_steps", "Недействительный таймаут шага Recipe") from exc
             if not 0 <= timeout_ms <= 120_000:
-                raise CodeBrowserValidationError("invalid_steps", "Recipe 步骤超时无效")
+                raise CodeBrowserValidationError("invalid_steps", "Недействительный таймаут шага Recipe")
             result.append({
                 "id": cls._text(item.get("id") or f"step-{index}", "step ID", 80, required=True),
                 "title": cls._text(item.get("title"), "step title", 160),
@@ -468,34 +468,34 @@ class CodeBrowserValidationRegistry:
                 "timeout_ms": timeout_ms,
             })
         if len({item["id"] for item in result}) != len(result):
-            raise CodeBrowserValidationError("invalid_steps", "Recipe 步骤 ID 不能重复")
+            raise CodeBrowserValidationError("invalid_steps", "ID шагов Recipe не должны повторяться")
         return result
 
     @classmethod
     def _assertions(cls, values: Sequence[Dict[str, object]]) -> List[Dict[str, object]]:
         if not isinstance(values, (list, tuple)) or len(values) > MAX_RECIPE_ASSERTIONS:
-            raise CodeBrowserValidationError("invalid_assertions", "Recipe 最多包含 50 个断言")
+            raise CodeBrowserValidationError("invalid_assertions", "Recipe может содержать не более 50 утверждений")
         allowed = {"id", "title", "type", "target", "expected", "timeout_ms"}
         result = []
         for index, item in enumerate(values, 1):
             if not isinstance(item, dict) or set(item) - allowed:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言字段无效")
+                raise CodeBrowserValidationError("invalid_assertions", "Недействительное поле утверждения Recipe")
             assertion_type = cls._text(item.get("type"), "assertion type", 40, required=True)
             if assertion_type not in ASSERTION_TYPES:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言类型无效")
+                raise CodeBrowserValidationError("invalid_assertions", "Недействительный тип утверждения Recipe")
             try:
                 timeout_ms = int(item.get("timeout_ms") or 10_000)
             except (TypeError, ValueError) as exc:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言超时无效") from exc
+                raise CodeBrowserValidationError("invalid_assertions", "Недействительный таймаут утверждения Recipe") from exc
             if not 0 <= timeout_ms <= 120_000:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言超时无效")
+                raise CodeBrowserValidationError("invalid_assertions", "Недействительный таймаут утверждения Recipe")
             expected = item.get("expected")
             try:
                 expected_json = json.dumps(expected, ensure_ascii=False)
             except (TypeError, ValueError) as exc:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言期望值无效") from exc
+                raise CodeBrowserValidationError("invalid_assertions", "Недействительное ожидаемое значение утверждения Recipe") from exc
             if len(expected_json) > 4000:
-                raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言期望值过大")
+                raise CodeBrowserValidationError("invalid_assertions", "Ожидаемое значение утверждения Recipe слишком велико")
             result.append({
                 "id": cls._text(item.get("id") or f"assertion-{index}", "assertion ID", 80, required=True),
                 "title": cls._text(item.get("title"), "assertion title", 160),
@@ -505,7 +505,7 @@ class CodeBrowserValidationRegistry:
                 "timeout_ms": timeout_ms,
             })
         if len({item["id"] for item in result}) != len(result):
-            raise CodeBrowserValidationError("invalid_assertions", "Recipe 断言 ID 不能重复")
+            raise CodeBrowserValidationError("invalid_assertions", "ID утверждений Recipe не должны повторяться")
         return result
 
     @staticmethod
@@ -515,31 +515,31 @@ class CodeBrowserValidationRegistry:
         try:
             revision = int(value)
         except (TypeError, ValueError) as exc:
-            raise CodeBrowserValidationError("invalid_revision", "revision 必须为整数") from exc
+            raise CodeBrowserValidationError("invalid_revision", "revision должен быть целым числом") from exc
         if revision < 0:
-            raise CodeBrowserValidationError("invalid_revision", "revision 不能为负数")
+            raise CodeBrowserValidationError("invalid_revision", "revision не может быть отрицательным")
         return revision
 
     @classmethod
     def _results(cls, values: Sequence[Dict[str, object]], kind: str) -> List[Dict[str, object]]:
         limit = MAX_RECIPE_STEPS if kind == "step" else MAX_RECIPE_ASSERTIONS
         if not isinstance(values, (list, tuple)) or len(values) > limit:
-            raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果数量超过限制")
+            raise CodeBrowserValidationError("invalid_evidence", f"Количество результатов {kind} превышает ограничение")
         allowed = {f"{kind}_id", "status", "duration_ms", "detail", "actual", "expected"}
         result = []
         for item in values:
             if not isinstance(item, dict) or set(item) - allowed:
-                raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果字段无效")
+                raise CodeBrowserValidationError("invalid_evidence", f"Недействительное поле результата {kind}")
             item_id = cls._text(item.get(f"{kind}_id"), f"{kind} result ID", 80, required=True)
             status = cls._text(item.get("status"), f"{kind} result status", 20, required=True)
             if status not in RESULT_STATUSES:
-                raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果状态无效")
+                raise CodeBrowserValidationError("invalid_evidence", f"Недействительное состояние результата {kind}")
             try:
                 duration_ms = int(item.get("duration_ms") or 0)
             except (TypeError, ValueError) as exc:
-                raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果耗时无效") from exc
+                raise CodeBrowserValidationError("invalid_evidence", f"Недействительное время выполнения результата {kind}") from exc
             if not 0 <= duration_ms <= 3_600_000:
-                raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果耗时无效")
+                raise CodeBrowserValidationError("invalid_evidence", f"Недействительное время выполнения результата {kind}")
             payload = {
                 f"{kind}_id": item_id,
                 "status": status,
@@ -552,12 +552,12 @@ class CodeBrowserValidationRegistry:
             result.append(payload)
         id_field = f"{kind}_id"
         if len({item[id_field] for item in result}) != len(result):
-            raise CodeBrowserValidationError("invalid_evidence", f"{kind} 结果 ID 不能重复")
+            raise CodeBrowserValidationError("invalid_evidence", f"ID результатов {kind} не должны повторяться")
         return result
 
     def _screenshots(self, root: Path, values: Sequence[str]) -> List[str]:
         if not isinstance(values, (list, tuple)) or len(values) > MAX_SCREENSHOTS:
-            raise CodeBrowserValidationError("invalid_evidence", "截图数量超过限制")
+            raise CodeBrowserValidationError("invalid_evidence", "Количество скриншотов превышает ограничение")
         allowed_roots = [root]
         if self.evidence_root:
             allowed_roots.append(self.evidence_root)
@@ -566,22 +566,22 @@ class CodeBrowserValidationRegistry:
             raw = Path(os.path.expanduser(str(value or "")))
             target = (root / raw).resolve() if not raw.is_absolute() else raw.resolve()
             if target.suffix.casefold() not in SCREENSHOT_SUFFIXES:
-                raise CodeBrowserValidationError("invalid_screenshot", "截图文件类型无效")
+                raise CodeBrowserValidationError("invalid_screenshot", "Недействительный тип файла скриншота")
             if not any(self._is_within(target, allowed) for allowed in allowed_roots):
-                raise CodeBrowserValidationError("invalid_screenshot", "截图必须位于项目或指定证据目录内")
+                raise CodeBrowserValidationError("invalid_screenshot", "Скриншот должен находиться в проекте или указанном каталоге доказательств")
             if not target.is_file() or target.stat().st_size > MAX_SCREENSHOT_BYTES:
-                raise CodeBrowserValidationError("invalid_screenshot", "截图不存在或超过大小限制")
+                raise CodeBrowserValidationError("invalid_screenshot", "Скриншот не существует или превышает ограничение размера")
             result.append(str(target))
         return list(dict.fromkeys(result))
 
     @classmethod
     def _console(cls, values: Sequence[Dict[str, object]]) -> List[Dict[str, object]]:
         if not isinstance(values, (list, tuple)) or len(values) > MAX_CONSOLE_ENTRIES:
-            raise CodeBrowserValidationError("invalid_evidence", "Console 摘要数量超过限制")
+            raise CodeBrowserValidationError("invalid_evidence", "Количество сводок Console превышает ограничение")
         result = []
         for item in values:
             if not isinstance(item, dict) or set(item) - {"level", "message", "source"}:
-                raise CodeBrowserValidationError("invalid_evidence", "Console 摘要字段无效")
+                raise CodeBrowserValidationError("invalid_evidence", "Недействительное поле сводки Console")
             result.append({
                 "level": cls._text(item.get("level"), "console level", 20, required=True),
                 "message": cls._text(item.get("message"), "console message", 2000, required=True),
@@ -592,17 +592,17 @@ class CodeBrowserValidationRegistry:
     @classmethod
     def _network(cls, values: Sequence[Dict[str, object]]) -> List[Dict[str, object]]:
         if not isinstance(values, (list, tuple)) or len(values) > MAX_NETWORK_ENTRIES:
-            raise CodeBrowserValidationError("invalid_evidence", "Network 摘要数量超过限制")
+            raise CodeBrowserValidationError("invalid_evidence", "Количество сводок Network превышает ограничение")
         result = []
         for item in values:
             if not isinstance(item, dict) or set(item) - {"method", "url", "status", "summary"}:
-                raise CodeBrowserValidationError("invalid_evidence", "Network 摘要字段无效")
+                raise CodeBrowserValidationError("invalid_evidence", "Недействительное поле сводки Network")
             try:
                 status = int(item.get("status") or 0)
             except (TypeError, ValueError) as exc:
-                raise CodeBrowserValidationError("invalid_evidence", "Network 状态码无效") from exc
+                raise CodeBrowserValidationError("invalid_evidence", "Недействительный код состояния Network") from exc
             if not 0 <= status <= 599:
-                raise CodeBrowserValidationError("invalid_evidence", "Network 状态码无效")
+                raise CodeBrowserValidationError("invalid_evidence", "Недействительный код состояния Network")
             result.append({
                 "method": cls._text(item.get("method") or "GET", "network method", 16, required=True),
                 "url": cls._text(item.get("url"), "network URL", 2048, required=True),

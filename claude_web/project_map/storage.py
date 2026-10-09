@@ -101,7 +101,7 @@ class ProjectMapStorage:
                     cancel_requested INTEGER NOT NULL DEFAULT 0,
                     model TEXT NOT NULL DEFAULT '',
                     effort TEXT NOT NULL DEFAULT '',
-                    preferred_language TEXT NOT NULL DEFAULT 'zh',
+                    preferred_language TEXT NOT NULL DEFAULT 'ru',
                     error_category TEXT NOT NULL DEFAULT '',
                     error_message TEXT NOT NULL DEFAULT '',
                     created_at REAL NOT NULL,
@@ -161,7 +161,7 @@ class ProjectMapStorage:
                 UPDATE project_map_runs
                 SET status = 'interrupted', phase = 'interrupted',
                     error_category = 'service_restarted',
-                    error_message = '服务重启，生成任务未自动重放',
+                    error_message = 'Служба перезапущена; задача создания не воспроизведена автоматически',
                     updated_at = ?
                 WHERE status IN ({placeholders})
                 """,
@@ -173,9 +173,9 @@ class ProjectMapStorage:
                     "status": "interrupted",
                     "phase": "interrupted",
                     "progress": 100,
-                    "message": "服务重启，项目地图生成已中断",
+                    "message": "Служба перезапущена; создание карты проекта прервано",
                     "error_category": "service_restarted",
-                    "error_message": "服务重启，生成任务未自动重放",
+                    "error_message": "Служба перезапущена; задача создания не воспроизведена автоматически",
                 }, now)
 
     @staticmethod
@@ -377,7 +377,7 @@ class ProjectMapStorage:
                 "status": "queued",
                 "phase": "queued",
                 "progress": 0,
-                "message": "已加入项目地图生成队列",
+                "message": "Добавлено в очередь создания карты проекта",
             }, now)
 
     def create_run_if_idle(
@@ -424,7 +424,7 @@ class ProjectMapStorage:
                 "status": "queued",
                 "phase": "queued",
                 "progress": 0,
-                "message": "已加入项目地图生成队列",
+                "message": "Добавлено в очередь создания карты проекта",
             }, now)
         return None
 
@@ -512,7 +512,7 @@ class ProjectMapStorage:
             )
             self._append_event_in_transaction(conn, run_id, {
                 "type": "cancel_requested",
-                "message": "正在取消项目地图生成",
+                "message": "Отмена создания карты проекта",
             }, now)
         return True
 
@@ -670,7 +670,7 @@ class ProjectMapStorage:
                 "status": "completed",
                 "phase": "completed",
                 "progress": 100,
-                "message": "项目地图已更新",
+                "message": "Карта проекта обновлена",
                 "revision": revision,
                 "seq": seq,
                 "ts": now,

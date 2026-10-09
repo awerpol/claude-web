@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="ru">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,36 +12,36 @@
       <div class="brand">
         <div>
           <h1>Claude Code Web</h1>
-          <p id="subtitle">选中网页内容后右键提问</p>
+          <p id="subtitle">Выделите текст на странице и спросите через контекстное меню</p>
         </div>
       </div>
       <div class="topbar-actions">
-        <button id="newAskBtn" class="icon-button" type="button" title="新提问" aria-label="新提问">
+        <button id="newAskBtn" class="icon-button" type="button" title="Новый вопрос" aria-label="Новый вопрос">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
         </button>
-        <button id="openOptionsBtn" class="icon-button" type="button" title="设置" aria-label="设置">
+        <button id="openOptionsBtn" class="icon-button" type="button" title="Настройки" aria-label="Настройки">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.2a3.8 3.8 0 1 1 0 7.6 3.8 3.8 0 0 1 0-7.6Z"/><path d="M19.4 13.5a7.8 7.8 0 0 0 0-3l2-1.5-2-3.5-2.5 1a8 8 0 0 0-2.6-1.5L14 2h-4l-.4 3a8 8 0 0 0-2.5 1.5l-2.6-1-2 3.5 2.1 1.5a7.8 7.8 0 0 0 0 3L2.5 15l2 3.5 2.6-1a8 8 0 0 0 2.5 1.5l.4 3h4l.3-3a8 8 0 0 0 2.6-1.5l2.5 1 2-3.5-2-1.5Z"/></svg>
         </button>
       </div>
     </header>
 
-    <nav id="assistantModeSwitch" class="mode-switch panel-width" aria-label="扩展模式">
-      <button type="button" data-assistant-mode="chat" aria-pressed="true">网页问答</button>
+    <nav id="assistantModeSwitch" class="mode-switch panel-width" aria-label="Режим расширения">
+      <button type="button" data-assistant-mode="chat" aria-pressed="true">Веб-чат</button>
       <button type="button" data-assistant-mode="code" aria-pressed="false">Code</button>
     </nav>
 
     <section id="emptyState" class="empty panel-width">
-      <div id="modeEyebrow" class="mode-eyebrow">普通聊天</div>
-      <h2 id="emptyTitle">把当前网页交给本地 Claude</h2>
-      <p id="emptyDescription">选中代码或文字后右键提问，或者直接读取当前页。结果会留在这个标签页的侧边栏里。</p>
+      <div id="modeEyebrow" class="mode-eyebrow">Обычный чат</div>
+      <h2 id="emptyTitle">Передать текущую страницу локальному Claude</h2>
+      <p id="emptyDescription">Выделите код или текст и спросите через контекстное меню либо просто прочитайте текущую страницу. Результат останется в боковой панели этой вкладки.</p>
       <div class="empty-actions">
-        <button id="emptyCapturePageBtn" type="button">读取当前页</button>
-        <button id="emptyOptionsBtn" type="button">配置本地连接</button>
+        <button id="emptyCapturePageBtn" type="button">Прочитать текущую страницу</button>
+        <button id="emptyOptionsBtn" type="button">Настроить локальное подключение</button>
       </div>
-      <div class="quick-actions" aria-label="快捷提问">
-        <button type="button" data-chat-question="总结当前页面，提炼核心结论和关键数据。" data-code-question="审查当前页面表现，定位最可能需要修改的前端问题，并结合项目代码给出处理计划。">总结页面</button>
-        <button type="button" data-chat-question="解释当前页面的主要内容，并指出最需要注意的部分。" data-code-question="分析当前页面可能存在的交互、布局和可访问性问题，定位相关项目文件。">解释重点</button>
-        <button type="button" data-chat-question="把当前页面整理成一份结构清晰、可执行的清单。" data-code-question="基于当前页面和项目，生成一份可验证的修改步骤，暂时不要改代码。">整理清单</button>
+      <div class="quick-actions" aria-label="Быстрые вопросы">
+        <button type="button" data-chat-question="Кратко изложи текущую страницу, выделив главные выводы и ключевые данные." data-code-question="Проверь поведение текущей страницы, определи наиболее вероятные фронтенд-проблемы и предложи план действий с учётом кода проекта.">Итог страницы</button>
+        <button type="button" data-chat-question="Объясни основное содержание текущей страницы и укажи, на что обратить внимание в первую очередь." data-code-question="Проанализируй возможные проблемы взаимодействия, вёрстки и доступности на текущей странице и найди связанные файлы проекта.">Объяснить главное</button>
+        <button type="button" data-chat-question="Оформи текущую страницу в виде чёткого, выполнимого списка." data-code-question="На основе текущей страницы и проекта составь проверяемые шаги изменений, код пока не меняй.">Составить список</button>
       </div>
       <p id="lastError" class="error hidden"></p>
     </section>
@@ -50,10 +50,10 @@
       <div id="askState" class="context panel-width">
           <div class="context-head">
           <div>
-            <div id="sourceKicker" class="source-kicker">当前选中</div>
+            <div id="sourceKicker" class="source-kicker">Текущее выделение</div>
             <div id="askTitle" class="source-title"></div>
           </div>
-          <button id="toggleContextTextBtn" class="text-button" type="button">展开</button>
+          <button id="toggleContextTextBtn" class="text-button" type="button">Развернуть</button>
         </div>
         <a id="askUrl" target="_blank" rel="noreferrer"></a>
         <pre id="selectionPreview" class="collapsed"></pre>
@@ -61,7 +61,7 @@
 
       <section id="answerState" class="answer panel-width hidden">
         <div class="answer-header">
-          <div id="statusLine" class="status">准备中...</div>
+          <div id="statusLine" class="status">Подготовка...</div>
           <div id="statusDot" class="status-dot" aria-hidden="true"></div>
         </div>
         <article id="answer"></article>
@@ -69,25 +69,25 @@
 
       <div class="composer-wrap">
         <div class="composer panel-width">
-          <textarea id="customQuestion" rows="2" placeholder="输入问题，继续询问当前标签页"></textarea>
+          <textarea id="customQuestion" rows="2" placeholder="Введите вопрос, чтобы продолжить спрашивать о текущей вкладке"></textarea>
           <div class="composer-actions">
             <div class="left-actions">
-              <button id="toggleContextBtn" class="icon-btn" type="button" title="展开/收起上下文" aria-label="展开/收起上下文" data-tooltip="展开上下文">
+              <button id="toggleContextBtn" class="icon-btn" type="button" title="Развернуть/свернуть контекст" aria-label="Развернуть/свернуть контекст" data-tooltip="Развернуть контекст">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h10"/><path d="M4 17h16"/></svg>
               </button>
-              <button id="copyBtn" class="icon-btn" type="button" title="复制回答" aria-label="复制回答" data-tooltip="复制回答" disabled>
+              <button id="copyBtn" class="icon-btn" type="button" title="Копировать ответ" aria-label="Копировать ответ" data-tooltip="Копировать ответ" disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="10" height="10" rx="2"/><path d="M5 15V7a2 2 0 0 1 2-2h8"/></svg>
               </button>
-              <button id="stopBtn" class="icon-btn danger" type="button" title="停止回答" aria-label="停止回答" data-tooltip="停止回答" disabled>
+              <button id="stopBtn" class="icon-btn danger" type="button" title="Остановить ответ" aria-label="Остановить ответ" data-tooltip="Остановить ответ" disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
               </button>
-              <button id="capturePageBtn" class="icon-btn" type="button" title="读取当前页" aria-label="读取当前页" data-tooltip="读取当前页">
+              <button id="capturePageBtn" class="icon-btn" type="button" title="Прочитать текущую страницу" aria-label="Прочитать текущую страницу" data-tooltip="Прочитать текущую страницу">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><path d="M8 13h8"/><path d="M8 17h6"/></svg>
               </button>
             </div>
             <div class="model-group">
-              <label for="modelSelect" class="sr-only">模型档次</label>
-              <select id="modelSelect" aria-label="模型档次">
+              <label for="modelSelect" class="sr-only">Уровень модели</label>
+              <select id="modelSelect" aria-label="Уровень модели">
                 <option value="">Auto</option>
                 <option value="haiku">Flash</option>
                 <option value="sonnet">Pro</option>
@@ -95,10 +95,10 @@
               </select>
             </div>
             <div class="right-actions">
-              <button id="continueBtn" class="icon-btn" type="button" title="去 Web 端" aria-label="去 Web 端" data-tooltip="去 Web 端" disabled>
+              <button id="continueBtn" class="icon-btn" type="button" title="Перейти в веб-версию" aria-label="Перейти в веб-версию" data-tooltip="Перейти в веб-версию" disabled>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M10 14 15 9"/><path d="M11.5 9H15v3.5"/></svg>
               </button>
-              <button id="askBtn" class="icon-btn primary" type="button" title="发送" aria-label="发送" data-tooltip="发送">
+              <button id="askBtn" class="icon-btn primary" type="button" title="Отправить" aria-label="Отправить" data-tooltip="Отправить">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12 20 4l-5 16-3-6-8-2z"/></svg>
               </button>
             </div>

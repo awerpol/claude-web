@@ -37,19 +37,19 @@ function setStatus(text) {
   $("statusLine").textContent = text;
   const dot = $("statusDot");
   if (!dot) return;
-  dot.classList.toggle("active", /连接|正在|准备/.test(text));
-  dot.classList.toggle("done", /完成|已复制/.test(text));
+  dot.classList.toggle("active", /Подготовка|Останавливаю|Читаю|Подключение|отвечает/.test(text));
+  dot.classList.toggle("done", /Готово|Скопировано/.test(text));
 }
 
 function setLastError(error) {
   const el = $("lastError");
   const message = error?.message || "";
-  el.textContent = message ? `最近一次错误：${message}` : "";
+  el.textContent = message ? `Последняя ошибка: ${message}` : "";
   show(el, Boolean(message));
 }
 
 function askSourceLabel(ask) {
-  return ask?.sourceType === "page" || ask?.action === "page" ? "当前页面" : "当前选中";
+  return ask?.sourceType === "page" || ask?.action === "page" ? "Текущая страница" : "Текущее выделение";
 }
 
 function renderAnswer() {
@@ -137,7 +137,7 @@ function restoreTabState(snapshot) {
   contextExpanded = Boolean(snapshot.contextExpanded);
   $("subtitle").textContent = actionTitle(currentAsk.action);
   $("sourceKicker").textContent = askSourceLabel(currentAsk);
-  $("askTitle").textContent = currentAsk.pageTitle || "当前网页";
+  $("askTitle").textContent = currentAsk.pageTitle || "Текущая веб-страница";
   $("askUrl").textContent = currentAsk.pageUrl || "";
   $("askUrl").href = currentAsk.pageUrl || "#";
   $("selectionPreview").textContent = selectedPreview(currentAsk.selectedText);
@@ -152,20 +152,20 @@ function restoreTabState(snapshot) {
   show($("emptyState"), false);
   show($("workState"), true);
   show($("answerState"), true);
-  setStatus(snapshot.running ? "回答已在其他标签页中断，可继续追问" : (snapshot.status || "完成"));
+  setStatus(snapshot.running ? "Ответ был прерван в другой вкладке, можно продолжить" : (snapshot.status || "Готово"));
   return true;
 }
 
 async function restoreStateForActiveTab() {
   const key = tabStateKey();
   if (!key) {
-    resetPanel("选中网页内容后右键提问");
+    resetPanel("Выделите текст на странице и спросите через контекстное меню");
     return false;
   }
   const stored = await chrome.storage.local.get(TAB_STATES_KEY);
   const snapshot = stored[TAB_STATES_KEY]?.[key];
   if (snapshot && restoreTabState(snapshot)) return true;
-  resetPanel("当前标签页还没有提问");
+  resetPanel("Для этой вкладки ещё нет вопросов");
   return false;
 }
 
@@ -181,25 +181,25 @@ function askMatchesActiveTab(ask) {
 function modeCopy() {
   if (activeAssistantMode === "code") {
     return {
-      eyebrow: "Code 项目",
-      title: "从当前页面开始一次 Code 任务",
-      description: "读取页面上下文并交给已配置的本地项目，用于定位代码、制定修改计划和验证页面表现。",
-      capture: "读取当前页",
-      placeholder: "描述要定位、修改或验证的问题",
-      subtitle: "选择页面内容，交给 Code 项目处理",
-      continueLabel: "去 Code 工作区",
-      quickLabels: ["审查页面", "定位问题", "生成计划"],
+      eyebrow: "Проект Code",
+      title: "Начать задачу Code с текущей страницы",
+      description: "Считывает контекст страницы и передаёт его настроенному локальному проекту для поиска кода, планирования изменений и проверки поведения страницы.",
+      capture: "Прочитать текущую страницу",
+      placeholder: "Опишите, что нужно найти, изменить или проверить",
+      subtitle: "Выделите содержимое страницы и передайте его проекту Code",
+      continueLabel: "Перейти в рабочую область Code",
+      quickLabels: ["Проверить страницу", "Найти проблему", "Составить план"],
     };
   }
   return {
-    eyebrow: "普通聊天",
-    title: "把当前网页交给本地 Claude",
-    description: "选中代码或文字后右键提问，或者直接读取当前页。普通聊天只分析页面内容，不使用项目写入能力。",
-    capture: "读取当前页",
-    placeholder: "输入问题，继续询问当前标签页",
-    subtitle: "选中网页内容后右键提问",
-    continueLabel: "去 Web 端继续",
-    quickLabels: ["总结页面", "解释重点", "整理清单"],
+    eyebrow: "Обычный чат",
+    title: "Передать текущую страницу локальному Claude",
+    description: "Выделите код или текст и спросите через контекстное меню либо просто прочитайте текущую страницу. Обычный чат только анализирует содержимое страницы и не пишет в проект.",
+    capture: "Прочитать текущую страницу",
+    placeholder: "Введите вопрос, чтобы продолжить спрашивать о текущей вкладке",
+    subtitle: "Выделите текст на странице и спросите через контекстное меню",
+    continueLabel: "Продолжить в веб-версии",
+    quickLabels: ["Итог страницы", "Объяснить главное", "Составить список"],
   };
 }
 
@@ -232,7 +232,7 @@ async function setAssistantMode(mode, { persist = true } = {}) {
   renderAssistantMode();
   try {
     if (currentController || unresolvedServerSessionId) {
-      setStatus("正在停止当前任务...");
+      setStatus("Останавливаю текущую задачу...");
       const stopped = await stopAsk();
       if (!stopped) {
         if (!persist) await chrome.storage.sync.set({ assistantMode: activeAssistantMode });
@@ -250,7 +250,7 @@ async function setAssistantMode(mode, { persist = true } = {}) {
 }
 
 function activeTabLabel() {
-  return activeTabContext?.title || activeTabContext?.url || "当前标签页";
+  return activeTabContext?.title || activeTabContext?.url || "Текущая вкладка";
 }
 
 function resetPanel(message = modeCopy().subtitle) {
@@ -284,14 +284,14 @@ function resetPanel(message = modeCopy().subtitle) {
 
 function resetForDifferentTab() {
   saveCurrentTabState().then(() => restoreStateForActiveTab()).catch(() => {
-    resetPanel("当前标签页还没有提问");
+    resetPanel("Для этой вкладки ещё нет вопросов");
   });
   chrome.storage.local.remove("pendingAsk").catch(() => {});
 }
 
 function selectedPreview(text) {
   const value = String(text || "").trim();
-  return value.length > 3500 ? value.slice(0, 3500) + "\n\n...已截断预览" : value;
+  return value.length > 3500 ? value.slice(0, 3500) + "\n\n...предпросмотр обрезан" : value;
 }
 
 async function getActiveTab() {
@@ -342,28 +342,28 @@ function extractReadablePageText() {
 
 function pageContextText(result) {
   const headings = Array.isArray(result?.headings) && result.headings.length
-    ? `页面标题层级：\n${result.headings.map((h) => `- ${h}`).join("\n")}\n\n`
+    ? `Заголовки страницы:\n${result.headings.map((h) => `- ${h}`).join("\n")}\n\n`
     : "";
-  const description = result?.description ? `页面描述：${result.description}\n\n` : "";
+  const description = result?.description ? `Описание страницы: ${result.description}\n\n` : "";
   const body = String(result?.text || "").trim();
-  const combined = `${description}${headings}页面正文：\n${body}`.trim();
+  const combined = `${description}${headings}Текст страницы:\n${body}`.trim();
   return combined.length > MAX_PAGE_CONTEXT_CHARS
-    ? combined.slice(0, MAX_PAGE_CONTEXT_CHARS) + "\n\n...已截断当前页面正文"
+    ? combined.slice(0, MAX_PAGE_CONTEXT_CHARS) + "\n\n...текст страницы обрезан"
     : combined;
 }
 
 async function captureCurrentPage() {
   if (currentController || unresolvedServerSessionId) return false;
-  setStatus("正在读取当前页面...");
+  setStatus("Читаю текущую страницу...");
   try {
     const tab = await getActiveTab();
-    if (!tab?.id) throw new Error("找不到当前标签页");
+    if (!tab?.id) throw new Error("Не удалось найти текущую вкладку");
     const url = tab.url || "";
     if (!/^https?:|^file:/.test(url)) {
-      throw new Error("当前页面类型不支持读取");
+      throw new Error("Этот тип страницы не поддерживает чтение");
     }
     if (!chrome.scripting?.executeScript) {
-      throw new Error("当前扩展未启用页面读取权限，请在 chrome://extensions 刷新 Claude Code Web 扩展后重试");
+      throw new Error("У расширения нет разрешения на чтение страниц. Обновите расширение Claude Code Web на chrome://extensions и повторите");
     }
     const [injection] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -371,21 +371,21 @@ async function captureCurrentPage() {
     });
     const result = injection?.result || {};
     const text = pageContextText(result);
-    if (!text.trim()) throw new Error("没有读取到可见正文");
+    if (!text.trim()) throw new Error("Не удалось прочитать видимый текст");
     renderAsk({
       id: crypto.randomUUID(),
       action: "page",
       sourceType: "page",
       selectedText: text,
       pageUrl: result.url || tab.url || "",
-      pageTitle: result.title || tab.title || "当前页面",
+      pageTitle: result.title || tab.title || "Текущая страница",
       tabId: tab.id,
       windowId: tab.windowId ?? null,
       createdAt: Date.now(),
     });
     return true;
   } catch (error) {
-    setStatus(`读取失败：${error.message || error}`);
+    setStatus(`Ошибка чтения: ${error.message || error}`);
     setLastError(error);
     return false;
   }
@@ -401,7 +401,7 @@ async function startQuickPageAsk(question) {
 
 async function startNewAsk() {
   if (currentController || unresolvedServerSessionId) {
-    setStatus("正在停止当前任务...");
+    setStatus("Останавливаю текущую задачу...");
     if (!await stopAsk()) return;
   }
   const key = tabStateKey(currentAsk || activeTabContext);
@@ -428,7 +428,7 @@ function renderAsk(ask) {
   streamedMessageIds = new Set();
   $("subtitle").textContent = actionTitle(ask.action);
   $("sourceKicker").textContent = askSourceLabel(ask);
-  $("askTitle").textContent = ask.pageTitle || "当前网页";
+  $("askTitle").textContent = ask.pageTitle || "Текущая веб-страница";
   $("askUrl").textContent = ask.pageUrl || "";
   $("askUrl").href = ask.pageUrl || "#";
   $("selectionPreview").textContent = selectedPreview(ask.selectedText);
@@ -485,13 +485,13 @@ async function sendAsk() {
   const settings = await loadSettings();
   if (thisRequestVersion !== requestVersion) return;
   if (!settings.token) {
-    setStatus("请先在设置页填写 Token");
+    setStatus("Сначала укажите Token на странице настроек");
     chrome.runtime.openOptionsPage();
     return;
   }
   if (activeAssistantMode === "code" && !String(settings.cwd || "").trim()) {
-    setStatus("Code 模式需要先配置项目目录");
-    setLastError(new Error("请在扩展设置中填写 Code 项目目录"));
+    setStatus("В режиме Code нужно сначала настроить каталог проекта");
+    setLastError(new Error("Укажите каталог проекта Code в настройках расширения"));
     chrome.runtime.openOptionsPage();
     return;
   }
@@ -506,11 +506,11 @@ async function sendAsk() {
   }
   const question = $("customQuestion").value.trim();
   if (ask.action === "custom" && !question) {
-    setStatus("请输入自定义问题");
+    setStatus("Введите свой вопрос");
     return;
   }
   if (ask.action === "page" && !question) {
-    setStatus("请输入要问当前页面的问题");
+    setStatus("Введите вопрос о текущей странице");
     return;
   }
   if (question) {
@@ -530,7 +530,7 @@ async function sendAsk() {
   $("copyBtn").disabled = true;
   $("continueBtn").disabled = true;
   show($("answerState"), true);
-  setStatus("连接 Claude Code Web...");
+  setStatus("Подключение к Claude Code Web...");
   saveCurrentTabState().catch(() => {});
 
   try {
@@ -564,7 +564,7 @@ async function sendAsk() {
       throw new Error(detail);
     }
 
-    setStatus("Claude 正在回答...");
+    setStatus("Claude отвечает...");
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
@@ -594,19 +594,19 @@ async function sendAsk() {
           scheduleSaveCurrentTabState();
         }
         if (obj.type === "done") {
-          setStatus("完成");
+          setStatus("Готово");
           saveCurrentTabState().catch(() => {});
         }
       }
     }
     requestCompleted = true;
-    if (!answerText.trim()) setStatus("完成，但没有文本输出");
-    else setStatus("完成");
+    if (!answerText.trim()) setStatus("Готово, но без текста");
+    else setStatus("Готово");
     saveCurrentTabState().catch(() => {});
   } catch (error) {
     if (thisRequestVersion !== requestVersion) return;
-    if (error.name === "AbortError") setStatus("已停止");
-    else setStatus(`出错：${error.message || error}`);
+    if (error.name === "AbortError") setStatus("Остановлено");
+    else setStatus(`Ошибка: ${error.message || error}`);
     saveCurrentTabState().catch(() => {});
   } finally {
     if (thisRequestVersion !== requestVersion) return;
@@ -637,10 +637,10 @@ async function stopAsk() {
     }
     stopped = true;
     if (unresolvedServerSessionId === sessionId) unresolvedServerSessionId = "";
-    setStatus("已停止");
+    setStatus("Остановлено");
     return true;
   } catch (error) {
-    setStatus(`停止失败：${error.message || error}`);
+    setStatus(`Не удалось остановить: ${error.message || error}`);
     return false;
   } finally {
     if (stopped && currentController === controller) currentController = null;
@@ -655,7 +655,7 @@ async function stopAsk() {
 async function copyAnswer() {
   if (!answerText.trim()) return;
   await navigator.clipboard.writeText(answerText);
-  setStatus("已复制");
+  setStatus("Скопировано");
   saveCurrentTabState().catch(() => {});
 }
 
@@ -669,10 +669,10 @@ function updateContextToggle() {
   const preview = $("selectionPreview");
   preview.classList.toggle("expanded", contextExpanded);
   preview.classList.toggle("collapsed", !contextExpanded);
-  const label = contextExpanded ? "收起上下文" : "展开上下文";
+  const label = contextExpanded ? "Свернуть контекст" : "Развернуть контекст";
   $("toggleContextBtn").title = label;
   $("toggleContextBtn").setAttribute("aria-label", label);
-  $("toggleContextTextBtn").textContent = contextExpanded ? "收起" : "展开";
+  $("toggleContextTextBtn").textContent = contextExpanded ? "Свернуть" : "Развернуть";
 }
 
 function toggleContext() {

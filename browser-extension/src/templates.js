@@ -1,33 +1,33 @@
 export const ACTIONS = {
   explain: {
-    label: "解释",
-    menuTitle: "解释选中内容",
-    title: "解释选中内容",
+    label: "Объяснить",
+    menuTitle: "Объяснить выделенное",
+    title: "Объяснить выделенное",
   },
   review: {
-    label: "审查",
-    menuTitle: "审查这段代码",
-    title: "代码审查",
+    label: "Проверить",
+    menuTitle: "Проверить этот код",
+    title: "Проверка кода",
   },
   rewrite: {
-    label: "改写",
-    menuTitle: "改写选中内容",
-    title: "改写选中内容",
+    label: "Переписать",
+    menuTitle: "Переписать выделенное",
+    title: "Переписать выделенное",
   },
   test: {
-    label: "测试",
-    menuTitle: "生成测试",
-    title: "生成测试",
+    label: "Тесты",
+    menuTitle: "Создать тесты",
+    title: "Создать тесты",
   },
   custom: {
-    label: "自定义",
-    menuTitle: "自定义提问",
-    title: "自定义提问",
+    label: "Свой вопрос",
+    menuTitle: "Свой вопрос",
+    title: "Свой вопрос",
   },
   page: {
-    label: "当前页",
-    menuTitle: "询问当前页面",
-    title: "当前页面",
+    label: "Текущая страница",
+    menuTitle: "Спросить о текущей странице",
+    title: "Текущая страница",
   },
 };
 
@@ -47,10 +47,10 @@ export function normalizeServiceUrl(url) {
 export function assertLocalServiceUrl(url) {
   const parsed = new URL(normalizeServiceUrl(url));
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    throw new Error("服务地址必须是 http/https");
+    throw new Error("Адрес сервиса должен быть http/https");
   }
   if (!["127.0.0.1", "localhost", "::1"].includes(parsed.hostname)) {
-    throw new Error("服务地址只能指向本机 localhost/127.0.0.1");
+    throw new Error("Адрес сервиса должен указывать только на локальный localhost/127.0.0.1");
   }
   return parsed.toString().replace(/\/+$/, "");
 }

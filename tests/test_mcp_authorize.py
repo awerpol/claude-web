@@ -16,7 +16,7 @@ from claude_web import server
 class ConnectorAuthStatusTest(unittest.TestCase):
     def test_needs_auth_status_is_surfaced_from_probe(self):
         # A 401/403 from a remote server maps to needs-auth, which the UI badges
-        # as "待授权" rather than a hard error.
+        # as "ожидает авторизации" rather than a hard error.
         import asyncio
 
         class _Resp:

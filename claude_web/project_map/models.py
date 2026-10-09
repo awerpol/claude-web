@@ -23,7 +23,7 @@ ProjectMapRunStatus = Literal[
 class ProjectMapGenerateRequest(BaseModel):
     model: Optional[str] = None
     effort: Optional[str] = None
-    preferred_language: Literal["zh", "en"] = "zh"
+    preferred_language: Literal["ru", "en"] = "ru"
 
 
 class ProjectMapImpactRequest(BaseModel):

@@ -103,15 +103,15 @@ class ScheduledTaskStoreTest(unittest.TestCase):
 
     def test_create_roundtrips(self):
         tid = server._scheduled_task_create({
-            "name": "每日晨报",
+            "name": "Ежедневная сводка",
             "cron_expr": "0 9 * * *",
-            "message": "总结今天的待办",
+            "message": "Подведи итоги сегодняшних задач",
             "execution_model": "new_session",
             "cwd": "/tmp/proj",
             "model": "claude-opus-4-8",
         })
         task = server._scheduled_task_get(tid)
-        self.assertEqual(task["name"], "每日晨报")
+        self.assertEqual(task["name"], "Ежедневная сводка")
         self.assertEqual(task["cron_expr"], "0 9 * * *")
         self.assertEqual(task["execution_model"], "new_session")
         self.assertEqual(task["enabled"], 1)

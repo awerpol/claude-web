@@ -185,23 +185,23 @@ class ProjectMapService:
     def resolve_code_project(self, session_id: str) -> Tuple[dict, Path, str]:
         row = self.storage.session_row(session_id)
         if row is None:
-            raise HTTPException(status_code=404, detail="Code 会话不存在")
+            raise HTTPException(status_code=404, detail="Сессия Code не найдена")
         if str(row["workspace_mode"] or "chat") != "code":
-            raise HTTPException(status_code=409, detail="Project Map 仅在 Code 模式可用")
+            raise HTTPException(status_code=409, detail="Карта проекта доступна только в режиме Code")
         raw_cwd = str(row["cwd"] or "").strip()
         home = Path.home().resolve()
         if not raw_cwd or raw_cwd == "~":
-            raise HTTPException(status_code=409, detail="请先在 Code 模式选择具体项目目录")
+            raise HTTPException(status_code=409, detail="Сначала выберите конкретный каталог проекта в режиме Code")
         try:
             root = Path(os.path.expanduser(raw_cwd)).resolve()
         except OSError as exc:
-            raise HTTPException(status_code=400, detail="Code 项目目录不可访问") from exc
+            raise HTTPException(status_code=400, detail="Каталог проекта Code недоступен") from exc
         if root == home:
-            raise HTTPException(status_code=409, detail="Project Map 不会扫描整个用户目录，请选择具体项目")
+            raise HTTPException(status_code=409, detail="Карта проекта не сканирует весь домашний каталог; выберите конкретный проект")
         if root == Path(root.anchor):
-            raise HTTPException(status_code=409, detail="Project Map 不会扫描文件系统根目录，请选择具体项目")
+            raise HTTPException(status_code=409, detail="Карта проекта не сканирует корень файловой системы; выберите конкретный проект")
         if not root.is_dir():
-            raise HTTPException(status_code=400, detail="Code 项目目录不存在")
+            raise HTTPException(status_code=400, detail="Каталог проекта Code не существует")
         storage_key = hashlib.sha256(str(root).encode("utf-8", errors="replace")).hexdigest()[:24]
         return dict(row), root, storage_key
 
@@ -209,9 +209,9 @@ class ProjectMapService:
         session, root, storage_key = self.resolve_code_project(session_id)
         run = self.storage.run(run_id)
         if run is None:
-            raise HTTPException(status_code=404, detail="项目地图任务不存在")
+            raise HTTPException(status_code=404, detail="Задача карты проекта не найдена")
         if run["storage_key"] != storage_key:
-            raise HTTPException(status_code=403, detail="该任务不属于当前 Code 项目")
+            raise HTTPException(status_code=403, detail="Эта задача не относится к текущему проекту Code")
         return run, session, root, storage_key
 
     async def get_map(self, session_id: str) -> dict:
@@ -250,7 +250,7 @@ class ProjectMapService:
         _, _, storage_key = self.resolve_code_project(session_id)
         snapshot = await asyncio.to_thread(self.storage.snapshot, storage_key, revision)
         if snapshot is None:
-            raise HTTPException(status_code=404, detail="Project Map 版本不存在")
+            raise HTTPException(status_code=404, detail="Версия карты проекта не существует")
         return {
             "ok": True,
             "storage_key": storage_key,
@@ -266,7 +266,7 @@ class ProjectMapService:
             asyncio.to_thread(self.storage.snapshot, storage_key, to_revision),
         )
         if before is None or after is None:
-            raise HTTPException(status_code=404, detail="Project Map 对比版本不存在")
+            raise HTTPException(status_code=404, detail="Версия карты проекта для сравнения не существует")
         return {
             "ok": True,
             "storage_key": storage_key,
@@ -328,14 +328,14 @@ class ProjectMapService:
         *,
         model: str = "",
         effort: str = "",
-        preferred_language: str = "zh",
+        preferred_language: str = "ru",
     ) -> dict:
         _, root, storage_key = self.resolve_code_project(session_id)
         if self._maintenance_lock is not None:
             if self._maintenance_lock.locked():
                 raise HTTPException(
                     status_code=409,
-                    detail="Agent SDK 正在维护，请稍后再生成 Project Map",
+                    detail="Agent SDK на обслуживании; создайте карту проекта позже",
                 )
             async with self._maintenance_lock:
                 return await self._register_run(
@@ -349,7 +349,7 @@ class ProjectMapService:
         if self._generation_blocked():
             raise HTTPException(
                 status_code=409,
-                detail="Agent SDK 正在维护，请稍后再生成 Project Map",
+                detail="Agent SDK на обслуживании; создайте карту проекта позже",
             )
         return await self._register_run(
             session_id,
@@ -446,7 +446,7 @@ class ProjectMapService:
         _, root, storage_key = self.resolve_code_project(session_id)
         snapshot = await asyncio.to_thread(self.storage.latest_snapshot, storage_key)
         if snapshot is None:
-            raise HTTPException(status_code=404, detail="请先生成项目地图")
+            raise HTTPException(status_code=404, detail="Сначала создайте карту проекта")
         self._require_revision(snapshot, expected_revision)
         depth_limit = max(1, min(4, int(max_depth)))
         result_limit = max(1, min(200, int(max_results)))
@@ -462,7 +462,7 @@ class ProjectMapService:
                 target = target.resolve()
                 relative = target.relative_to(root).as_posix()
             except (OSError, ValueError) as exc:
-                raise HTTPException(status_code=400, detail="影响分析路径必须位于当前 Code 项目内") from exc
+                raise HTTPException(status_code=400, detail="Пути для анализа влияния должны находиться внутри текущего проекта Code") from exc
             normalized.add(relative)
         dataset = snapshot["dataset"]
         nodes = dataset.get("nodes") or []
@@ -572,22 +572,22 @@ class ProjectMapService:
         _, root, storage_key = self.resolve_code_project(session_id)
         snapshot = await asyncio.to_thread(self.storage.latest_snapshot, storage_key)
         if snapshot is None:
-            raise HTTPException(status_code=404, detail="请先生成项目地图")
+            raise HTTPException(status_code=404, detail="Сначала создайте карту проекта")
         self._require_revision(snapshot, expected_revision)
         if snapshot["completeness"] != "complete":
-            self._conflict("project_map_incomplete", "项目地图扫描不完整，无法创建上下文包")
+            self._conflict("project_map_incomplete", "Сканирование карты проекта неполное, невозможно создать пакет контекста")
         current_scan = await asyncio.to_thread(self.scanner.scan, root)
         if current_scan.partial:
             self._conflict(
                 "project_map_freshness_unknown",
-                "当前项目扫描不完整，无法安全创建上下文包",
+                "Текущее сканирование проекта неполное; безопасно создать пакет контекста невозможно",
                 reason=current_scan.partial_reason,
             )
         if current_scan.source_root_hash != snapshot["source_root_hash"]:
-            self._conflict("project_map_source_changed", "项目源码已有变化，请先刷新项目地图")
+            self._conflict("project_map_source_changed", "Исходный код проекта изменился; сначала обновите карту проекта")
         requested = list(dict.fromkeys(str(value or "").strip() for value in node_ids if str(value or "").strip()))
         if not requested or len(requested) > 30:
-            raise HTTPException(status_code=422, detail="上下文包节点数量必须为 1-30")
+            raise HTTPException(status_code=422, detail="Количество узлов в пакете контекста должно быть от 1 до 30")
         dataset = snapshot["dataset"]
         node_index = {item.get("id"): item for item in dataset.get("nodes") or []}
         missing = [value for value in requested if value not in node_index]
@@ -709,28 +709,28 @@ class ProjectMapService:
         _, root, storage_key = self.resolve_code_project(session_id)
         pack = await asyncio.to_thread(self.storage.context_pack, str(pack_id or ""))
         if pack is None:
-            raise HTTPException(status_code=404, detail="上下文包不存在")
+            raise HTTPException(status_code=404, detail="Пакет контекста не найден")
         if pack["owner_session_id"] != session_id:
-            raise HTTPException(status_code=403, detail="上下文包不属于当前 Code 会话")
+            raise HTTPException(status_code=403, detail="Пакет контекста не относится к текущей сессии Code")
         if pack["storage_key"] != storage_key or pack["canonical_cwd"] != str(root):
-            raise HTTPException(status_code=403, detail="上下文包不属于当前 Code 项目")
+            raise HTTPException(status_code=403, detail="Пакет контекста не относится к текущему проекту Code")
         if pack["expires_at"] <= time.time():
-            self._conflict("context_pack_expired", "上下文包已过期，请重新创建")
+            self._conflict("context_pack_expired", "Пакет контекста устарел; создайте его заново")
         snapshot = await asyncio.to_thread(self.storage.latest_snapshot, storage_key)
         if snapshot is None or snapshot["revision"] != pack["revision"]:
             self._conflict(
-                "project_map_revision_mismatch", "项目地图已经更新，请重新创建上下文包",
+                "project_map_revision_mismatch", "Карта проекта обновлена; создайте пакет контекста заново",
                 current_revision=snapshot["revision"] if snapshot else 0,
             )
         current_scan = await asyncio.to_thread(self.scanner.scan, root)
         if current_scan.partial:
             self._conflict(
                 "project_map_freshness_unknown",
-                "当前项目扫描不完整，无法安全解析上下文包",
+                "Текущее сканирование проекта неполное; безопасно разобрать пакет контекста невозможно",
                 reason=current_scan.partial_reason,
             )
         if current_scan.source_root_hash != snapshot["source_root_hash"]:
-            self._conflict("project_map_source_changed", "项目源码已有变化，请重新创建上下文包")
+            self._conflict("project_map_source_changed", "Исходный код проекта изменился; создайте пакет контекста заново")
         for path, expected_hash in pack["file_hashes"].items():
             self._read_verified_project_file(root, path, expected_hash)
         return {
@@ -749,7 +749,7 @@ class ProjectMapService:
                 return
             try:
                 await self._check_cancel(run_id, cancel_event)
-                await self._set_phase(run_id, "scanning", 8, "正在扫描 Code 项目")
+                await self._set_phase(run_id, "scanning", 8, "Сканирование проекта Code")
                 root = Path(run["canonical_cwd"]).resolve()
                 scan = await asyncio.to_thread(self.scanner.scan, root)
                 await self._check_cancel(run_id, cancel_event)
@@ -757,15 +757,15 @@ class ProjectMapService:
                     run_id,
                     "extracting",
                     32,
-                    f"已索引 {len(scan.files)} 个文件，正在构建确定性关系",
+                    f"Проиндексировано файлов: {len(scan.files)}; строим детерминированные связи",
                 )
                 old_snapshot = await asyncio.to_thread(self.storage.latest_snapshot, run["storage_key"])
                 dataset = self._build_deterministic_dataset(run, scan)
                 await self._check_cancel(run_id, cancel_event)
-                await self._set_phase(run_id, "generating", 48, "正在生成项目语义地图")
+                await self._set_phase(run_id, "generating", 48, "Создание семантической карты проекта")
                 semantic = await self._generate_semantic(run, scan, cancel_event)
                 await self._check_cancel(run_id, cancel_event)
-                await self._set_phase(run_id, "validating", 78, "正在校验证据和关系")
+                await self._set_phase(run_id, "validating", 78, "Проверка доказательств и связей")
                 allowed_evidence_ids = {
                     item.id for item in self._select_prompt_evidence(scan.evidence)
                 }
@@ -778,7 +778,7 @@ class ProjectMapService:
                 validated = ProjectMapDataset.model_validate(dataset).model_dump()
                 self._validate_integrity(validated)
                 await self._check_cancel(run_id, cancel_event)
-                await self._set_phase(run_id, "persisting", 92, "正在保存新的项目地图版本")
+                await self._set_phase(run_id, "persisting", 92, "Сохранение новой версии карты проекта")
                 self._validate_run_ownership(run)
                 revision = await asyncio.to_thread(
                     self.storage.publish_snapshot,
@@ -795,25 +795,25 @@ class ProjectMapService:
                 if revision is None:
                     raise ProjectMapSuperseded()
             except ProjectMapCancelled:
-                await self._set_phase(run_id, "cancelled", 100, "项目地图生成已取消")
+                await self._set_phase(run_id, "cancelled", 100, "Создание карты проекта отменено")
             except ProjectMapPublishCancelled:
-                await self._set_phase(run_id, "cancelled", 100, "项目地图生成已取消")
+                await self._set_phase(run_id, "cancelled", 100, "Создание карты проекта отменено")
             except ProjectMapPartialRefreshRejected:
                 await self._set_phase(
                     run_id, "failed", 100,
-                    "本次扫描不完整，已保留上一版完整项目地图",
+                    "Это сканирование неполное; сохранена предыдущая полная карта проекта",
                     error_category="partial_scan_preserved",
                 )
             except ProjectMapSuperseded:
                 await self._set_phase(
                     run_id, "superseded", 100,
-                    "项目或地图版本已变化，本次结果未覆盖当前版本",
+                    "Проект или версия карты изменились; результат не перезаписал текущую версию",
                     error_category="ownership_changed",
                 )
             except asyncio.CancelledError:
                 await self._set_phase(
                     run_id, "interrupted", 100,
-                    "服务关闭，项目地图生成已中断",
+                    "Служба остановлена; создание карты проекта прервано",
                     error_category="service_shutdown",
                 )
                 raise
@@ -823,7 +823,7 @@ class ProjectMapService:
                     run_id,
                     "failed",
                     100,
-                    "项目地图生成失败，已保留上一版本",
+                    "Создание карты проекта не удалось; сохранена предыдущая версия",
                     error_category=self._error_category(exc),
                     error_message=str(exc)[:1000],
                 )
@@ -879,7 +879,7 @@ class ProjectMapService:
                 layer="deterministic",
                 kind="project",
                 title=scan.root.name,
-                summary=f"{len(scan.files)} 个已索引文件",
+                summary=f"Проиндексированных файлов: {len(scan.files)}",
                 roles=["module"],
                 confidence="high",
             )
@@ -897,7 +897,7 @@ class ProjectMapService:
                 layer="deterministic",
                 kind="module",
                 title=part,
-                summary=f"{len(files)} 个文件",
+                summary=f"Файлов: {len(files)}",
                 roles=["module"],
                 confidence="high",
             ))
@@ -1126,7 +1126,7 @@ class ProjectMapService:
         evidence: List[ProjectMapEvidence],
         language: str,
     ) -> str:
-        output_language = "简体中文" if language == "zh" else "English"
+        output_language = "English" if language == "en" else "Русский"
         blocks = []
         for item in evidence:
             blocks.append(
@@ -1545,7 +1545,7 @@ class ProjectMapService:
             return
         cls._conflict(
             "project_map_revision_mismatch",
-            "项目地图已经更新，请重新加载",
+            "Карта проекта обновлена; загрузите заново",
             current_revision=int(snapshot["revision"]),
         )
 
@@ -1559,14 +1559,14 @@ class ProjectMapService:
             target = (root / relative_path).resolve()
             target.relative_to(root)
         except (OSError, ValueError) as exc:
-            raise HTTPException(status_code=400, detail="上下文文件必须位于当前 Code 项目内") from exc
+            raise HTTPException(status_code=400, detail="Файлы контекста должны находиться внутри текущего проекта Code") from exc
         try:
             raw = target.read_bytes()
         except OSError:
-            cls._conflict("context_pack_source_changed", "上下文文件已删除或不可访问", path=relative_path)
+            cls._conflict("context_pack_source_changed", "Файл контекста удалён или недоступен", path=relative_path)
         actual_hash = hashlib.sha256(raw).hexdigest()
         if actual_hash != expected_hash:
-            cls._conflict("context_pack_source_changed", "上下文文件已经变化", path=relative_path)
+            cls._conflict("context_pack_source_changed", "Файл контекста изменился", path=relative_path)
         return raw
 
     @staticmethod

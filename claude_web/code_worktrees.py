@@ -100,22 +100,22 @@ class CodeWorktreeManager:
         self._validate_branch(repo_root, normalized_branch)
         normalized_base = str(base_ref or "HEAD").strip()
         if not normalized_base or normalized_base.startswith("-"):
-            raise CodeWorktreeError("invalid_base_ref", "Worktree 基础版本无效")
+            raise CodeWorktreeError("invalid_base_ref", "Недействительная базовая версия рабочего дерева")
         base_head = self._git(
             repo_root,
             ["rev-parse", "--verify", "--end-of-options", f"{normalized_base}^{{commit}}"],
         ).strip()
         container = repo_root.parent / f"{repo_root.name}.claude-web-worktrees"
         if container.exists() and (container.is_symlink() or not container.is_dir()):
-            raise CodeWorktreeError("unsafe_worktree_root", "Worktree 专用目录不安全")
+            raise CodeWorktreeError("unsafe_worktree_root", "Выделенный каталог рабочего дерева небезопасен")
         container.mkdir(mode=0o700, exist_ok=True)
         if container.resolve() != (repo_root.parent / container.name).resolve():
-            raise CodeWorktreeError("unsafe_worktree_root", "Worktree 专用目录已逃逸仓库父目录")
+            raise CodeWorktreeError("unsafe_worktree_root", "Выделенный каталог рабочего дерева вышел за родительский каталог репозитория")
         target = container / normalized_slug
         if target.parent.resolve() != container.resolve():
-            raise CodeWorktreeError("unsafe_worktree_path", "Worktree 路径必须位于专用目录内")
+            raise CodeWorktreeError("unsafe_worktree_path", "Путь рабочего дерева должен находиться внутри выделенного каталога")
         if target.exists() or target.is_symlink():
-            raise CodeWorktreeError("duplicate_worktree", "同名 Worktree 已存在")
+            raise CodeWorktreeError("duplicate_worktree", "Рабочее дерево с таким именем уже существует")
 
         worktree_id = uuid.uuid4().hex
         worktree_session_id = uuid.uuid4().hex
@@ -137,7 +137,7 @@ class CodeWorktreeManager:
                     ),
                 )
         except sqlite3.IntegrityError as exc:
-            raise CodeWorktreeError("duplicate_worktree", "同名 Worktree 已登记") from exc
+            raise CodeWorktreeError("duplicate_worktree", "Рабочее дерево с таким именем уже зарегистрировано") from exc
 
         try:
             self._git(
@@ -197,7 +197,7 @@ class CodeWorktreeManager:
 
     def remove(self, session_id: str, worktree_id: str, *, confirm: bool = False) -> Dict[str, object]:
         if not confirm:
-            raise CodeWorktreeError("confirmation_required", "删除 Worktree 需要显式确认")
+            raise CodeWorktreeError("confirmation_required", "Для удаления рабочего дерева требуется явное подтверждение")
         row = self._registry_row(worktree_id)
         self._require_access(session_id, row)
         state = self._reconcile(row)
@@ -206,11 +206,11 @@ class CodeWorktreeManager:
                 self._archive_worktree_session(conn, str(row["worktree_session_id"]))
             return state
         if state["status"] in {"creating", "removing"}:
-            raise CodeWorktreeError("worktree_active", "Worktree 正在执行管理操作")
+            raise CodeWorktreeError("worktree_active", "Рабочее дерево выполняет операцию управления")
         if bool(state["runtime_active"]) or self._session_is_active(str(row["worktree_session_id"])):
-            raise CodeWorktreeError("worktree_active", "Worktree Code 会话仍在运行")
+            raise CodeWorktreeError("worktree_active", "Сессия Code рабочего дерева всё ещё выполняется")
         if bool(state["dirty"]):
-            raise CodeWorktreeError("worktree_dirty", "Worktree 存在未提交修改，拒绝删除")
+            raise CodeWorktreeError("worktree_dirty", "В рабочем дереве есть незакоммиченные изменения, удаление отклонено")
         with self.connect(immediate=True) as conn:
             conn.execute(
                 "UPDATE code_worktrees SET status = 'removing', updated_at = ? WHERE id = ?",
@@ -310,39 +310,39 @@ class CodeWorktreeManager:
                 (session_id,),
             ).fetchone()
         if row is None:
-            raise CodeWorktreeError("session_not_found", "Code 会话不存在")
+            raise CodeWorktreeError("session_not_found", "Сессия Code не существует")
         if str(row["workspace_mode"] or "chat") != "code":
-            raise CodeWorktreeError("code_session_required", "Worktree 仅支持 Code 会话")
+            raise CodeWorktreeError("code_session_required", "Рабочие деревья поддерживаются только в сессиях Code")
         cwd = str(row["cwd"] or "").strip()
         if not cwd:
-            raise CodeWorktreeError("project_required", "Code 会话尚未绑定项目目录")
+            raise CodeWorktreeError("project_required", "Сессия Code ещё не привязана к каталогу проекта")
         return dict(row)
 
     def _main_repo_root(self, cwd: Path) -> Path:
         try:
             current_root = Path(self._git(cwd, ["rev-parse", "--show-toplevel"]).strip()).resolve()
         except CodeWorktreeError as exc:
-            raise CodeWorktreeError("git_repo_required", "Code 会话目录不是 Git 仓库") from exc
+            raise CodeWorktreeError("git_repo_required", "Каталог сессии Code не является репозиторием Git") from exc
         output = self._git(current_root, ["worktree", "list", "--porcelain"])
         for line in output.splitlines():
             if line.startswith("worktree "):
                 return Path(line[9:]).resolve()
-        raise CodeWorktreeError("git_repo_required", "无法解析 Git 主工作区")
+        raise CodeWorktreeError("git_repo_required", "Не удалось определить основную рабочую область Git")
 
     @staticmethod
     def _validate_slug(slug: str) -> str:
         value = str(slug or "").strip()
         if not _SLUG_RE.fullmatch(value) or value in {".", ".."}:
-            raise CodeWorktreeError("invalid_slug", "Worktree 名称只能包含字母、数字、点、下划线和短横线")
+            raise CodeWorktreeError("invalid_slug", "Имя рабочего дерева может содержать только буквы, цифры, точку, подчёркивание и дефис")
         return value
 
     def _validate_branch(self, repo_root: Path, branch: str) -> None:
         if not branch or branch.startswith("-"):
-            raise CodeWorktreeError("invalid_branch", "Worktree 分支名无效")
+            raise CodeWorktreeError("invalid_branch", "Недействительное имя ветки рабочего дерева")
         try:
             self._git(repo_root, ["check-ref-format", f"refs/heads/{branch}"])
         except CodeWorktreeError as exc:
-            raise CodeWorktreeError("invalid_branch", "Worktree 分支名无效") from exc
+            raise CodeWorktreeError("invalid_branch", "Недействительное имя ветки рабочего дерева") from exc
 
     def _registered_worktree_paths(self, repo_root: Path) -> set[Path]:
         output = self._git(repo_root, ["worktree", "list", "--porcelain"])
@@ -356,13 +356,13 @@ class CodeWorktreeManager:
         with self.connect() as conn:
             row = conn.execute("SELECT * FROM code_worktrees WHERE id = ?", (worktree_id,)).fetchone()
         if row is None:
-            raise CodeWorktreeError("worktree_not_found", "Worktree 不存在")
+            raise CodeWorktreeError("worktree_not_found", "Рабочее дерево не существует")
         return dict(row)
 
     @staticmethod
     def _require_access(session_id: str, row: Dict[str, object]) -> None:
         if session_id not in {row["source_session_id"], row["worktree_session_id"]}:
-            raise CodeWorktreeError("worktree_forbidden", "Worktree 不属于当前 Code 会话")
+            raise CodeWorktreeError("worktree_forbidden", "Рабочее дерево не принадлежит текущей сессии Code")
 
     def _session_is_active(self, session_id: str) -> bool:
         if self.activity_checker is not None and self.activity_checker(session_id):
@@ -466,7 +466,7 @@ class CodeWorktreeManager:
         except (OSError, subprocess.TimeoutExpired) as exc:
             raise CodeWorktreeError("git_failed", str(exc)) from exc
         if completed.returncode != 0:
-            message = (completed.stderr or completed.stdout or "Git 命令执行失败").strip()
+            message = (completed.stderr or completed.stdout or "Сбой выполнения команды Git").strip()
             raise CodeWorktreeError("git_failed", message[:1000])
         return completed.stdout
 

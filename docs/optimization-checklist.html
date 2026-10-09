@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>claude-web 优化清单</title>
+<title>Список оптимизаций claude-web</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;background:#fff;color:#1f2328;line-height:1.65;padding:2.5rem 2rem;}
@@ -32,327 +32,327 @@ tbody tr:hover{background:#f6f8fa;}
 <body>
 <div class="container">
 
-<h1>claude-web 优化清单</h1>
-<p class="subtitle">基于代码审计（daemon、server、frontend、安全），按严重度排序，标注位置和修复方案</p>
+<h1>Список оптимизаций claude-web</h1>
+<p class="subtitle">На основе аудита кода (daemon, server, frontend, безопасность), отсортировано по серьёзности, с указанием места и способа исправления</p>
 
 <div class="summary">
-  <b>统计：</b>共 28 项问题。CRITICAL 4 项 / HIGH 7 项 / MEDIUM 10 项 / LOW 7 项<br>
-  <b>重点区域：</b>daemon 进程鲁棒性、server.py 事件循环阻塞、前端 DOM 无限增长、移动访问模式下的 CSRF<br>
-  <b>原则：</b>我们的架构（持久 Node 守护进程 + 8 并发 runtime + 4字节帧协议）比竞品好。问题在细节打磨。
+  <b>Статистика:</b> всего 28 проблем. CRITICAL 4 / HIGH 7 / MEDIUM 10 / LOW 7<br>
+  <b>Ключевые области:</b> устойчивость процесса daemon, блокировка цикла событий в server.py, неограниченный рост DOM во фронтенде, CSRF в режиме мобильного доступа<br>
+  <b>Принцип:</b> наша архитектура (постоянный демон Node + 8 параллельных runtime + протокол 4-байтовых фреймов) лучше, чем у конкурентов. Проблемы в шлифовке деталей.
 </div>
 
 <!-- DAEMON -->
-<h2>一、Node 守护进程 (daemon.mjs + agent_sdk_bridge.py)</h2>
+<h2>I. Демон Node (daemon.mjs + agent_sdk_bridge.py)</h2>
 <table>
-<thead><tr><th style="width:60px;">严重度</th><th style="width:240px;">问题</th><th>位置</th><th>影响 / 用户感知</th><th>修复方案</th></tr></thead>
+<thead><tr><th style="width:60px;">Серьёзность</th><th style="width:240px;">Проблема</th><th>Место</th><th>Влияние / что замечает пользователь</th><th>Способ исправления</th></tr></thead>
 <tbody>
 
-<tr class="cat-row"><td colspan="5">进程鲁棒性</td></tr>
+<tr class="cat-row"><td colspan="5">Устойчивость процесса</td></tr>
 <tr>
   <td><span class="sev sev-c">CRITICAL</span></td>
-  <td>无 uncaughtException / unhandledRejection 兜底</td>
-  <td class="loc">daemon.mjs 全文</td>
-  <td>SDK 任何未捕获异常直接杀死 daemon，所有 8 个活跃会话全挂</td>
-  <td class="fix">加 process.on('uncaughtException/unhandledRejection')：终止当前 turn + 写 error+done，daemon 继续存活</td>
+  <td>Нет подстраховки uncaughtException / unhandledRejection</td>
+  <td class="loc">daemon.mjs целиком</td>
+  <td>Любое необработанное исключение SDK сразу убивает daemon, все 8 активных сессий падают</td>
+  <td class="fix">Добавить process.on('uncaughtException/unhandledRejection'): завершать текущий turn + писать error+done, daemon продолжает жить</td>
 </tr>
 <tr>
   <td><span class="sev sev-c">CRITICAL</span></td>
-  <td>无 process.exit() 拦截</td>
-  <td class="loc">daemon.mjs 全文</td>
-  <td>如果 SDK 内部或依赖包调 process.exit()，daemon 无预警死亡</td>
-  <td class="fix">覆盖 process.exit = (code) => { throw new DaemonExitInterrupt(code) }，在 handle() 外层 catch</td>
+  <td>Нет перехвата process.exit()</td>
+  <td class="loc">daemon.mjs целиком</td>
+  <td>Если SDK внутренне или зависимый пакет вызовет process.exit(), daemon умирает без предупреждения</td>
+  <td class="fix">Переопределить process.exit = (code) => { throw new DaemonExitInterrupt(code) }, перехватывать во внешнем catch в handle()</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>无 PPID 孤儿监控</td>
-  <td class="loc">daemon.mjs 全文</td>
-  <td>Python 被 kill -9 / OOM 后，daemon 变僵尸永不退出，占端口和内存</td>
-  <td class="fix">setInterval 每 5 秒检查 process.ppid，变为 1 或 ESRCH 就 graceful shutdown</td>
+  <td>Нет мониторинга сиротства PPID</td>
+  <td class="loc">daemon.mjs целиком</td>
+  <td>После kill -9 / OOM процесса Python daemon становится зомби и никогда не завершается, занимая порт и память</td>
+  <td class="fix">setInterval каждые 5 секунд проверяет process.ppid; при значении 1 или ESRCH — graceful shutdown</td>
 </tr>
 
-<tr class="cat-row"><td colspan="5">并发与竞态</td></tr>
+<tr class="cat-row"><td colspan="5">Параллелизм и гонки</td></tr>
 <tr>
   <td><span class="sev sev-c">CRITICAL</span></td>
-  <td>abandon_turn 先删 queue 再发 interrupt，done 帧被丢弃</td>
+  <td>abandon_turn сначала удаляет queue, затем отправляет interrupt, кадр done теряется</td>
   <td class="loc">agent_sdk_bridge.py:390-394</td>
-  <td>后续该 session 所有 turn 失败："A Code turn is already running"，持续 30 分钟直到 idle 回收</td>
-  <td class="fix">先发 interrupt → 等 done 到达（带超时）→ 再删 queue</td>
+  <td>Все последующие turn этой session падают: "A Code turn is already running", в течение 30 минут до освобождения по простою</td>
+  <td class="fix">Сначала отправить interrupt → дождаться прихода done (с таймаутом) → затем удалить queue</td>
 </tr>
 <tr>
   <td><span class="sev sev-c">CRITICAL</span></td>
-  <td>interrupt 和 readRuntime write() 竞态</td>
+  <td>Гонка между interrupt и readRuntime write()</td>
   <td class="loc">daemon.mjs:417-448, 613</td>
-  <td>interrupt 返回 ok 但 turn 不出 done 帧，session 挂起</td>
-  <td class="fix">interrupt 时先设 aborted flag → readRuntime 循环检查 flag → 确保 done 一定发出</td>
+  <td>interrupt возвращает ok, но turn не выдаёт кадр done, session зависает</td>
+  <td class="fix">При interrupt сначала установить флаг aborted → цикл readRuntime проверяет флаг → гарантировать обязательную отправку done</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>preflightSend 和 handleSend 之间有时间窗口可被并发 send 穿越</td>
+  <td>Между preflightSend и handleSend есть окно времени, которое может пересечь параллельный send</td>
   <td class="loc">daemon.mjs:586-604, 869</td>
-  <td>同 session 两个 turn 都收到 accepted，事件互串，session 损坏</td>
-  <td class="fix">将 preflightSend + accepted + handleSend 合为单个原子操作，在同一个 withRuntimeMutation 内完成</td>
+  <td>Оба turn одной session получают accepted, события смешиваются, session повреждается</td>
+  <td class="fix">Объединить preflightSend + accepted + handleSend в одну атомарную операцию внутри одного withRuntimeMutation</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>idle 扫描 disposeRuntime 未 await，旧 reader 可能写已被复用的 requestId</td>
+  <td>При сканировании простоя disposeRuntime не await, старый reader может записать уже переиспользованный requestId</td>
   <td class="loc">daemon.mjs:888-893</td>
-  <td>极低概率下新 turn 收到旧 runtime 的事件</td>
-  <td class="fix">await disposeRuntime 或在 dispose 前先 detach activeRequestId</td>
+  <td>С крайне низкой вероятностью новый turn получает событие старого runtime</td>
+  <td class="fix">await disposeRuntime либо сначала detach activeRequestId перед dispose</td>
 </tr>
 
-<tr class="cat-row"><td colspan="5">资源泄漏</td></tr>
+<tr class="cat-row"><td colspan="5">Утечки ресурсов</td></tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>permissionWaiters 在 queue overflow 时泄漏（30 分钟 timer）</td>
+  <td>permissionWaiters утекают при queue overflow (таймер на 30 минут)</td>
   <td class="loc">daemon.mjs:269-270</td>
-  <td>内存缓慢增长 + 可能 double-resolve</td>
-  <td class="fix">queue overflow 时同步清理该 session 所有 pendingApprovals + permissionWaiters</td>
+  <td>Медленный рост памяти + возможный double-resolve</td>
+  <td class="fix">При queue overflow синхронно очищать все pendingApprovals + permissionWaiters этой session</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>_responses future 超时后 reader 调 set_result 抛 InvalidStateError 杀死整个 reader</td>
+  <td>После таймаута future _responses вызов set_result в reader бросает InvalidStateError и убивает весь reader</td>
   <td class="loc">agent_sdk_bridge.py:396-406, 280</td>
-  <td>极低概率但致命：reader 死后所有 session 无法收到事件</td>
-  <td class="fix">reader 内 set_result 包 try/except InvalidStateError</td>
+  <td>Крайне низкая вероятность, но фатально: после смерти reader все session не могут получать события</td>
+  <td class="fix">Обернуть set_result в reader в try/except InvalidStateError</td>
 </tr>
 
-<tr class="cat-row"><td colspan="5">延迟优化</td></tr>
+<tr class="cat-row"><td colspan="5">Оптимизация задержки</td></tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>无 preconnect 预热，首条消息承受 2-5 秒 SDK 冷启动</td>
+  <td>Нет прогрева preconnect, первое сообщение терпит 2-5 секунд холодного старта SDK</td>
   <td class="loc">daemon.mjs handle()</td>
-  <td>用户创建 Code 会话后发第一条消息要等很久</td>
-  <td class="fix">新增 method:'preconnect'，Python 在创建会话时即调用，提前创建 runtime</td>
+  <td>После создания сессии Code пользователю приходится долго ждать перед отправкой первого сообщения</td>
+  <td class="fix">Добавить method:'preconnect', Python вызывает его уже при создании сессии, заранее создавая runtime</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>无 turn 间事件监听（perpetual reader）</td>
+  <td>Нет прослушивания событий между turn (perpetual reader)</td>
   <td class="loc">daemon.mjs readRuntime()</td>
-  <td>子 agent 后台完成后用户无通知，要等下次交互才看到结果</td>
-  <td class="fix">turn 结束后保持 query.next() 循环，收到事件通过新消息类型 push 给 Python</td>
+  <td>После фонового завершения субагента пользователю не приходит уведомление, результат виден только при следующем взаимодействии</td>
+  <td class="fix">После завершения turn поддерживать цикл query.next(), полученные события push-ить в Python новым типом сообщения</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>shutdown 2 秒超时经常不够，graceful close 被跳过</td>
+  <td>Таймаута shutdown в 2 секунды часто не хватает, graceful close пропускается</td>
   <td class="loc">agent_sdk_bridge.py:611-617</td>
-  <td>进程重启时 SDK 连接被粗暴断开</td>
-  <td class="fix">增大超时到 5 秒，或按 runtime 数量动态调整</td>
+  <td>При перезапуске процесса соединение SDK обрывается жёстко</td>
+  <td class="fix">Увеличить таймаут до 5 секунд либо регулировать динамически по числу runtime</td>
 </tr>
 </tbody>
 </table>
 
 <!-- SERVER -->
-<h2>二、后端 Server (server.py)</h2>
+<h2>II. Бэкенд Server (server.py)</h2>
 <table>
-<thead><tr><th style="width:60px;">严重度</th><th style="width:240px;">问题</th><th>位置</th><th>影响 / 用户感知</th><th>修复方案</th></tr></thead>
+<thead><tr><th style="width:60px;">Серьёзность</th><th style="width:240px;">Проблема</th><th>Место</th><th>Влияние / что замечает пользователь</th><th>Способ исправления</th></tr></thead>
 <tbody>
 
-<tr class="cat-row"><td colspan="5">事件循环阻塞（最高优先）</td></tr>
+<tr class="cat-row"><td colspan="5">Блокировка цикла событий (наивысший приоритет)</td></tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>subprocess.run 阻塞事件循环最多 5 秒</td>
+  <td>subprocess.run блокирует цикл событий до 5 секунд</td>
   <td class="loc">server.py:362</td>
-  <td>首次 streaming 请求时所有并发 SSE 流和 HTTP 响应卡死 5 秒</td>
-  <td class="fix">改为 asyncio.to_thread(subprocess.run, ...) + 缓存结果（已有缓存逻辑但首次调用仍阻塞）</td>
+  <td>При первом streaming-запросе все параллельные потоки SSE и HTTP-ответы замерзают на 5 секунд</td>
+  <td class="fix">Заменить на asyncio.to_thread(subprocess.run, ...) + кэшировать результат (логика кэша есть, но первый вызов всё равно блокирует)</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>append_event() 同步文件写 + SQLite insert，每个 SSE 事件都调</td>
+  <td>append_event() — синхронная запись в файл + SQLite insert, вызывается на каждое событие SSE</td>
   <td class="loc">server.py:1560-1569</td>
-  <td>200 事件 = 200 次阻塞 I/O；SSE 流抖动，移动端感知明显</td>
-  <td class="fix">asyncio.to_thread() 包裹，或批量写入（攒 N 条后一次 flush）</td>
+  <td>200 событий = 200 блокирующих I/O; поток SSE дёргается, на мобильных заметно</td>
+  <td class="fix">Обернуть в asyncio.to_thread() либо писать пакетами (накопить N записей и сбросить разом)</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>load_events() 同步读整个 JSONL 文件</td>
+  <td>load_events() синхронно читает весь файл JSONL</td>
   <td class="loc">server.py:1739-1753</td>
-  <td>长会话 JSONL 几十 MB，stop_chat / 会话恢复时阻塞事件循环秒级</td>
+  <td>JSONL длинной сессии — десятки MB; при stop_chat / восстановлении сессии цикл событий блокируется на секунды</td>
   <td class="fix">await asyncio.to_thread(load_events, path)</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>os.walk() 在 file-tree 端点中同步调用</td>
+  <td>os.walk() синхронно вызывается в эндпоинте file-tree</td>
   <td class="loc">server.py:9896, 9729</td>
-  <td>大型 repo（万级文件）扫描阻塞数百 ms，期间所有 SSE 停推</td>
-  <td class="fix">asyncio.to_thread() 包裹</td>
+  <td>Сканирование крупного repo (десятки тысяч файлов) блокирует на сотни ms, всё это время SSE перестаёт отправлять события</td>
+  <td class="fix">Обернуть в asyncio.to_thread()</td>
 </tr>
 
-<tr class="cat-row"><td colspan="5">内存泄漏</td></tr>
+<tr class="cat-row"><td colspan="5">Утечки памяти</td></tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>_agent_loop_jobs 字典不自动清理</td>
+  <td>Словарь _agent_loop_jobs не очищается автоматически</td>
   <td class="loc">server.py:245</td>
-  <td>每个 job 持有 4000 条事件列表，长时间运行后内存持续增长</td>
-  <td class="fix">后台定时任务每 5 分钟调 _agent_loop_prune_jobs()</td>
+  <td>Каждый job держит список из 4000 событий, при долгой работе память постоянно растёт</td>
+  <td class="fix">Фоновая задача по расписанию каждые 5 минут вызывает _agent_loop_prune_jobs()</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>_agent_sdk_context_usage_cache 无上限</td>
+  <td>_agent_sdk_context_usage_cache без верхней границы</td>
   <td class="loc">server.py:164</td>
-  <td>每 session 一条缓存，永不删除</td>
-  <td class="fix">改用 LRU (maxsize=500) 或定时清理</td>
+  <td>По одной записи кэша на session, никогда не удаляется</td>
+  <td class="fix">Перейти на LRU (maxsize=500) либо периодическую очистку</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>_mobile_login_failures 不清理唯一 IP</td>
+  <td>_mobile_login_failures не очищает уникальные IP</td>
   <td class="loc">server.py:117</td>
-  <td>端口扫描场景下 dict 无限增长</td>
-  <td class="fix">后台 sweep，清理 >窗口期的条目</td>
+  <td>В сценарии сканирования портов словарь растёт неограниченно</td>
+  <td class="fix">Фоновая уборка, очищать записи старше окна</td>
 </tr>
 
-<tr class="cat-row"><td colspan="5">数据库</td></tr>
+<tr class="cat-row"><td colspan="5">База данных</td></tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>sessions.cwd 无索引，全表扫描</td>
+  <td>sessions.cwd без индекса, полное сканирование таблицы</td>
   <td class="loc">server.py:5101</td>
-  <td>cwd picker 端点随会话增多越来越慢</td>
+  <td>Эндпоинт cwd picker с ростом числа сессий становится всё медленнее</td>
   <td class="fix">CREATE INDEX idx_sessions_cwd ON sessions(cwd)</td>
 </tr>
 </tbody>
 </table>
 
 <!-- FRONTEND -->
-<h2>三、前端 (index.html)</h2>
+<h2>III. Фронтенд (index.html)</h2>
 <table>
-<thead><tr><th style="width:60px;">严重度</th><th style="width:240px;">问题</th><th>位置</th><th>影响 / 用户感知</th><th>修复方案</th></tr></thead>
+<thead><tr><th style="width:60px;">Серьёзность</th><th style="width:240px;">Проблема</th><th>Место</th><th>Влияние / что замечает пользователь</th><th>Способ исправления</th></tr></thead>
 <tbody>
 
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>DOM 节点无限增长，无虚拟化/裁剪</td>
+  <td>Узлы DOM растут неограниченно, нет виртуализации / обрезки</td>
   <td class="loc">index.html:11056</td>
-  <td>长会话（1000+ 消息）页面逐渐卡顿，内存飙升</td>
-  <td class="fix">对超出视口的旧消息做 DOM detach（保留数据），或 IntersectionObserver 懒恢复</td>
+  <td>Длинная сессия (1000+ сообщений) постепенно начинает тормозить, память взлетает</td>
+  <td class="fix">Делать DOM detach для старых сообщений за пределами вьюпорта (данные сохранять) либо ленивое восстановление через IntersectionObserver</td>
 </tr>
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>每个流式 token 都触发 scrollTop = scrollHeight（强制同步布局）</td>
+  <td>Каждый потоковый токен вызывает scrollTop = scrollHeight (принудительный синхронный layout)</td>
   <td class="loc">index.html:10003, 15071</td>
-  <td>高速输出时 CPU 100%，页面卡顿掉帧</td>
-  <td class="fix">scrollBottom() 改用 requestAnimationFrame 节流，每帧最多一次</td>
+  <td>При быстром выводе CPU 100%, страница тормозит и теряет кадры</td>
+  <td class="fix">Перевести scrollBottom() на троттлинг через requestAnimationFrame, не чаще одного раза на кадр</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>content_block_stop 时全量替换 innerHTML + 遍历 querySelectorAll</td>
+  <td>При content_block_stop полная замена innerHTML + обход querySelectorAll</td>
   <td class="loc">index.html:15106</td>
-  <td>超长消息（大代码块）停止时瞬间卡顿</td>
-  <td class="fix">可接受，但对超大块考虑增量替换或 Web Worker 中 parse</td>
+  <td>Мгновенный рывок при остановке на сверхдлинном сообщении (большой блок кода)</td>
+  <td class="fix">Приемлемо, но для очень больших блоков рассмотреть инкрементную замену или parse в Web Worker</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>主题切换 mermaid.run() 重新渲染全部图表 O(n)</td>
+  <td>При смене темы mermaid.run() перерисовывает все диаграммы O(n)</td>
   <td class="loc">index.html:10837</td>
-  <td>有大量 mermaid 图时切换主题卡顿</td>
-  <td class="fix">只渲染可见区域的 mermaid，或 debounce</td>
+  <td>При большом числе диаграмм mermaid смена темы тормозит</td>
+  <td class="fix">Рендерить только видимые диаграммы mermaid либо debounce</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>两个全局 setInterval 永不清除</td>
+  <td>Два глобальных setInterval никогда не очищаются</td>
   <td class="loc">index.html:25652-25653</td>
-  <td>轻量级，不影响体验</td>
-  <td class="fix">可忽略</td>
+  <td>Легковесны, на опыт не влияют</td>
+  <td class="fix">Можно игнорировать</td>
 </tr>
 </tbody>
 </table>
 
 <!-- SECURITY -->
-<h2>四、安全</h2>
+<h2>IV. Безопасность</h2>
 <table>
-<thead><tr><th style="width:60px;">严重度</th><th style="width:240px;">问题</th><th>位置</th><th>影响 / 用户感知</th><th>修复方案</th></tr></thead>
+<thead><tr><th style="width:60px;">Серьёзность</th><th style="width:240px;">Проблема</th><th>Место</th><th>Влияние / что замечает пользователь</th><th>Способ исправления</th></tr></thead>
 <tbody>
 
 <tr>
   <td><span class="sev sev-h">HIGH</span></td>
-  <td>CSRF 保护函数是死代码（第 4996 行直接 return）</td>
+  <td>Функция защиты CSRF — мёртвый код (в строке 4996 сразу return)</td>
   <td class="loc">server.py:4991-4996</td>
-  <td><b>移动访问模式开启时</b>，恶意页面可对 /api/chat、/api/exec-code 等发跨站请求</td>
-  <td class="fix">对非 GET 请求校验 Origin 或加 CSRF token（注释说明为何之前禁用：兼容反向代理）</td>
+  <td><b>При включённом режиме мобильного доступа</b> вредоносная страница может слать межсайтовые запросы к /api/chat, /api/exec-code и др.</td>
+  <td class="fix">Для запросов не GET проверять Origin или добавлять CSRF-токен (в комментарии пояснить, почему раньше было отключено: совместимость с обратным прокси)</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>mermaid securityLevel: 'loose' 允许 SVG 内执行 JS</td>
+  <td>mermaid securityLevel: 'loose' допускает выполнение JS внутри SVG</td>
   <td class="loc">index.html:9468, 10786</td>
-  <td>恶意 mermaid 代码块可执行任意 JS（XSS）</td>
-  <td class="fix">改为 securityLevel: 'strict'</td>
+  <td>Вредоносный блок кода mermaid может выполнить произвольный JS (XSS)</td>
+  <td class="fix">Заменить на securityLevel: 'strict'</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>/api/files cwd 参数无根路径限制（本地请求）</td>
+  <td>Параметр cwd у /api/files без ограничения корневого пути (локальный запрос)</td>
   <td class="loc">server.py:14329-14357</td>
-  <td>CSRF 场景下可列出 / 下任意目录</td>
-  <td class="fix">本地请求也限制在已注册项目路径内，或仅返回当前 session 的 cwd</td>
+  <td>В сценарии CSRF можно перечислить произвольный каталог в /</td>
+  <td class="fix">Ограничить и локальные запросы зарегистрированными путями проекта либо возвращать только cwd текущей session</td>
 </tr>
 <tr>
   <td><span class="sev sev-m">MEDIUM</span></td>
-  <td>OTP 限速靠 IP，X-Forwarded-For 可伪造绕过</td>
+  <td>Ограничение скорости OTP зависит от IP, X-Forwarded-For можно подделать для обхода</td>
   <td class="loc">server.py:4743-4748, 4485-4491</td>
-  <td>反向代理后 OTP 可被暴力破解（6 位 = 100 万种）</td>
-  <td class="fix">不信任 XFF 做限速 key，改用直连 peer IP；或加全局尝试次数上限</td>
+  <td>За обратным прокси OTP можно перебрать (6 знаков = 1 млн вариантов)</td>
+  <td class="fix">Не доверять XFF как ключу ограничения, перейти на прямой peer IP; либо добавить глобальный верхний предел числа попыток</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>Extension token 无 replay 保护</td>
+  <td>У токена Extension нет защиты от повторного воспроизведения</td>
   <td class="loc">server.py:4982-4988</td>
-  <td>截获 token 后可永久重放。CORS 限制 chrome-extension:// origin 缓解了部分风险</td>
-  <td class="fix">可接受（localhost 工具）。若需加固：加 timestamp + nonce</td>
+  <td>Перехваченный токен можно воспроизводить бессрочно. Ограничение CORS по origin chrome-extension:// частично снижает риск</td>
+  <td class="fix">Приемлемо (инструмент для localhost). Если нужна защита: добавить timestamp + nonce</td>
 </tr>
 <tr>
   <td><span class="sev sev-l">LOW</span></td>
-  <td>/api/exec-code 无沙箱，移动访问已正确阻断</td>
+  <td>У /api/exec-code нет песочницы, мобильный доступ уже корректно заблокирован</td>
   <td class="loc">server.py:11751-11782</td>
-  <td>本地可执行任意代码（预期行为），移动端已阻断</td>
-  <td class="fix">当前可接受</td>
+  <td>Локально можно выполнить произвольный код (ожидаемое поведение), на мобильных заблокировано</td>
+  <td class="fix">Сейчас приемлемо</td>
 </tr>
 </tbody>
 </table>
 
 <!-- PRIORITY -->
-<h2>五、建议修复顺序</h2>
+<h2>V. Рекомендуемый порядок исправлений</h2>
 <table>
-<thead><tr><th>批次</th><th>范围</th><th>包含项</th><th>估时</th></tr></thead>
+<thead><tr><th>Партия</th><th>Область</th><th>Входящие пункты</th><th>Оценка времени</th></tr></thead>
 <tbody>
 <tr>
-  <td><b>P0 立即</b></td>
-  <td>进程可靠性</td>
-  <td>uncaughtException 兜底 + process.exit 拦截 + PPID 监控 + abandon_turn 竞态修复</td>
-  <td>1 天</td>
+  <td><b>P0 немедленно</b></td>
+  <td>Надёжность процесса</td>
+  <td>подстраховка uncaughtException + перехват process.exit + мониторинг PPID + исправление гонки abandon_turn</td>
+  <td>1 день</td>
 </tr>
 <tr>
-  <td><b>P1 本周</b></td>
-  <td>事件循环阻塞</td>
+  <td><b>P1 на этой неделе</b></td>
+  <td>Блокировка цикла событий</td>
   <td>subprocess.run → to_thread + append_event → to_thread + load_events → to_thread + os.walk → to_thread</td>
-  <td>1 天</td>
+  <td>1 день</td>
 </tr>
 <tr>
-  <td><b>P2 本周</b></td>
-  <td>安全</td>
-  <td>CSRF Origin 校验（移动模式）+ mermaid strict + OTP 限速修复</td>
-  <td>半天</td>
+  <td><b>P2 на этой неделе</b></td>
+  <td>Безопасность</td>
+  <td>проверка CSRF Origin (мобильный режим) + mermaid strict + исправление ограничения скорости OTP</td>
+  <td>полдня</td>
 </tr>
 <tr>
   <td><b>P3 v2.3</b></td>
-  <td>延迟 / 体验</td>
-  <td>preconnect 预热 + scrollBottom rAF 节流 + SSE 断线重连 (seq)</td>
-  <td>2 天</td>
+  <td>Задержка / опыт</td>
+  <td>прогрев preconnect + троттлинг scrollBottom через rAF + переподключение SSE после обрыва (seq)</td>
+  <td>2 дня</td>
 </tr>
 <tr>
   <td><b>P4 v2.3</b></td>
-  <td>内存 / 长期</td>
-  <td>DOM 裁剪 + _agent_loop_jobs 清理 + context_usage_cache LRU + sessions.cwd 索引</td>
-  <td>2 天</td>
+  <td>Память / долгосрочное</td>
+  <td>обрезка DOM + очистка _agent_loop_jobs + LRU для context_usage_cache + индекс sessions.cwd</td>
+  <td>2 дня</td>
 </tr>
 <tr>
-  <td><b>P5 远期</b></td>
-  <td>增强</td>
-  <td>perpetual reader + preflightSend 原子化 + permissionWaiters 清理</td>
-  <td>2 天</td>
+  <td><b>P5 отдалённое</b></td>
+  <td>Улучшения</td>
+  <td>perpetual reader + атомарность preflightSend + очистка permissionWaiters</td>
+  <td>2 дня</td>
 </tr>
 </tbody>
 </table>
 
 <div class="footer">
-  生成于 2026-08-15 &nbsp;|&nbsp; 审计范围：daemon.mjs (902行) + agent_sdk_bridge.py (617行) + server.py (15119行) + index.html (26009行)<br>
-  参考对比：jetbrains-cc-gui 的 daemon 实现（上述 P0 中三项加固直接参考其做法）
+  Сгенерировано 2026-08-15 &nbsp;|&nbsp; охват аудита: daemon.mjs (902 строки) + agent_sdk_bridge.py (617 строк) + server.py (15119 строк) + index.html (26009 строк)<br>
+  Ориентир для сравнения: реализация daemon в jetbrains-cc-gui (три пункта укрепления в P0 напрямую опираются на его подход)
 </div>
 
 </div>

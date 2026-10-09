@@ -128,7 +128,7 @@ class ConnectorCatalogStructureTest(unittest.TestCase):
 
     def test_push_only_bots_are_marked_notify(self):
         # WeCom / DingTalk group robots can only push, not read/write — they must
-        # carry capability:notify so the UI badges them "仅通知".
+        # carry capability:notify so the UI badges them "только уведомления".
         by_id = {e["id"]: e for e in self.catalog["connectors"]}
         for pid in ("wecom", "dingtalk"):
             self.assertEqual(by_id[pid].get("capability"), "notify",

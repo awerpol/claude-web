@@ -137,7 +137,7 @@ def create_project_map_router(service: ProjectMapService) -> APIRouter:
                     yield _sse(item)
                 run = await asyncio.to_thread(service.storage.run, run_id)
                 if run is None:
-                    raise HTTPException(status_code=404, detail="项目地图任务不存在")
+                    raise HTTPException(status_code=404, detail="Задача карты проекта не найдена")
                 if run["status"] in TERMINAL_STATUSES and not items:
                     return
                 if time.monotonic() - heartbeat_at >= 15:

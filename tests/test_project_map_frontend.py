@@ -29,7 +29,7 @@ class ProjectMapExplorerFrontendTest(unittest.TestCase):
         self.assertIn("moveGraphFocus", self.script)
         self.assertIn("bindCanvasNavigation", self.script)
         self.assertIn("data-pm-edge", self.script)
-        self.assertIn("关系证据", self.script)
+        self.assertIn("Доказательства связи", self.script)
         self.assertIn(".pm-edge-hit", self.style)
 
     def test_all_kinds_and_relationship_types_are_filterable(self):
@@ -47,7 +47,7 @@ class ProjectMapExplorerFrontendTest(unittest.TestCase):
         self.assertNotIn("state.adapter?.send", self.script)
 
     def test_accessible_list_remains_available_when_graph_is_hidden_on_mobile(self):
-        self.assertIn('aria-label="项目节点列表"', self.script)
+        self.assertIn('aria-label="Список узлов проекта"', self.script)
         self.assertIn("@media (max-width: 760px)", self.style)
         self.assertIn(".pm-canvas-panel", self.style)
         self.assertIn("display: none", self.style)

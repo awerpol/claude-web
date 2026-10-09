@@ -3,16 +3,16 @@
 
   const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'interrupted', 'superseded']);
   const KIND_LABELS = {
-    project: '项目',
-    module: '模块',
-    route: '路由',
-    file: '文件',
-    component: '组件',
-    service: '服务',
-    data: '数据',
-    entrypoint: '入口',
-    workflow: '流程',
-    capability: '能力',
+    project: 'Проект',
+    module: 'Модуль',
+    route: 'Маршрут',
+    file: 'Файл',
+    component: 'Компонент',
+    service: 'Сервис',
+    data: 'Данные',
+    entrypoint: 'Точка входа',
+    workflow: 'Процесс',
+    capability: 'Возможность',
   };
   const KIND_COLORS = {
     project: '#8b5cf6',
@@ -109,7 +109,7 @@
       const detail = payload?.detail;
       const message = typeof detail === 'string'
         ? detail
-        : (detail?.message || detail?.code || payload?.error || `请求失败（${response.status}）`);
+        : (detail?.message || detail?.code || payload?.error || `Ошибка запроса (${response.status})`);
       throw new Error(message);
     }
     return payload;
@@ -120,7 +120,7 @@
   }
 
   function kindLabel(kind) {
-    return KIND_LABELS[kind] || kind || '节点';
+    return KIND_LABELS[kind] || kind || 'Узел';
   }
 
   function statusView() {
@@ -131,27 +131,27 @@
       const changes = state.freshness?.changes || state.freshness?.summary || {};
       const counts = changes.counts || {};
       const count = Number(changes.total || changes.changed || Object.values(counts).reduce((sum, value) => sum + Number(value || 0), 0));
-      return { className: 'is-stale', label: count ? `源码有 ${count} 处变化` : '源码已有变化' };
+      return { className: 'is-stale', label: count ? `В исходном коде ${count} изменений` : 'Исходный код изменился' };
     }
     if (state.error) return { className: 'is-stale', label: state.error };
-    if (state.dataset) return { className: 'is-ready', label: `地图 v${state.revision}` };
-    return { className: '', label: '尚未生成' };
+    if (state.dataset) return { className: 'is-ready', label: `Карта v${state.revision}` };
+    return { className: '', label: 'Ещё не создана' };
   }
 
   function phaseLabel(phase) {
     return {
-      queued: '等待生成',
-      scanning: '扫描项目',
-      extracting: '提取结构',
-      generating: '生成语义层',
-      validating: '校验证据',
-      persisting: '保存新版本',
-      completed: '更新完成',
-      cancelled: '已取消',
-      failed: '生成失败',
-      interrupted: '生成中断',
-      superseded: '结果已过期',
-    }[phase] || '处理中';
+      queued: 'Ожидание создания',
+      scanning: 'Сканирование проекта',
+      extracting: 'Извлечение структуры',
+      generating: 'Создание семантического слоя',
+      validating: 'Проверка доказательств',
+      persisting: 'Сохранение новой версии',
+      completed: 'Обновление завершено',
+      cancelled: 'Отменено',
+      failed: 'Ошибка создания',
+      interrupted: 'Создание прервано',
+      superseded: 'Результат устарел',
+    }[phase] || 'Обработка';
   }
 
   function visibleNodes() {
@@ -257,30 +257,30 @@
     const running = state.run && !TERMINAL.has(state.run.status);
     const status = statusView();
     const progress = running ? Number(state.run.progress || 0) : 0;
-    const actionLabel = state.dataset ? '刷新' : '生成地图';
+    const actionLabel = state.dataset ? 'Обновить' : 'Создать карту';
 
     target.innerHTML = `
       <div class="pm-shell">
         <div class="pm-toolbar">
-          <button class="pm-icon-button" type="button" data-pm-action="close" aria-label="返回对话" title="返回对话">
+          <button class="pm-icon-button" type="button" data-pm-action="close" aria-label="Вернуться к диалогу" title="Вернуться к диалогу">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
           </button>
           <div class="pm-toolbar-title">
-            <strong>Project Map</strong>
-            <span>${html(state.projectName || context().cwd || '当前 Code 项目')}</span>
+            <strong>Карта проекта</strong>
+            <span>${html(state.projectName || context().cwd || 'Текущий проект Code')}</span>
           </div>
           <span class="pm-status ${status.className}" role="status" aria-live="polite">
             <i class="pm-status-dot"></i>${html(status.label)}
           </span>
-          ${state.dataset ? `<button class="pm-button" type="button" data-pm-action="freshness">变化</button>
-            <button class="pm-button" type="button" data-pm-action="history">版本</button>` : ''}
+          ${state.dataset ? `<button class="pm-button" type="button" data-pm-action="freshness">Изменения</button>
+            <button class="pm-button" type="button" data-pm-action="history">Версии</button>` : ''}
           ${running ? `
-            <button class="pm-button danger" type="button" data-pm-action="cancel">取消</button>
+            <button class="pm-button danger" type="button" data-pm-action="cancel">Отмена</button>
           ` : `
             <button class="pm-button ${state.dataset ? '' : 'primary'}" type="button" data-pm-action="generate">${actionLabel}</button>
           `}
         </div>
-        <div class="pm-progress" role="progressbar" aria-label="Project Map 生成进度"
+        <div class="pm-progress" role="progressbar" aria-label="Ход создания карты проекта"
           aria-hidden="${running ? 'false' : 'true'}" aria-valuemin="0" aria-valuemax="100"
           aria-valuenow="${progress}" style="--pm-progress:${progress}%"><span></span></div>
         <div data-pm-content class="pm-workspace"></div>
@@ -296,18 +296,18 @@
     if (!content) return;
 
     if (state.error && !state.dataset) {
-      content.innerHTML = emptyView('地图暂时不可用', state.error, '重试');
+      content.innerHTML = emptyView('Карта временно недоступна', state.error, 'Повторить');
       bindContentEvents();
       return;
     }
     if (!state.dataset) {
       const running = state.run && !TERMINAL.has(state.run.status);
       content.innerHTML = emptyView(
-        running ? '正在理解这个项目' : '为当前 Code 项目生成知识图谱',
+        running ? 'Анализ этого проекта' : 'Создать граф знаний для текущего проекта Code',
         running
-          ? (state.runMessage || '正在扫描文件、提取确定性关系，并生成带源码证据的语义地图。')
-          : '地图按项目目录共享，但通过当前 Code 会话鉴权。生成结果不会进入普通聊天上下文。',
-        running ? '' : '开始生成',
+          ? (state.runMessage || 'Сканируем файлы, извлекаем детерминированные связи и создаём семантическую карту с доказательствами из исходного кода.')
+          : 'Карта общая для каталога проекта, но доступ авторизуется через текущую сессию Code. Результаты создания не попадают в обычный контекст чата.',
+        running ? '' : 'Начать создание',
       );
       bindContentEvents();
       return;
@@ -318,41 +318,41 @@
     const graph = graphModel();
     const current = selectedNode();
     content.innerHTML = `
-      <aside class="pm-panel left" aria-label="项目节点列表">
+      <aside class="pm-panel left" aria-label="Список узлов проекта">
         <div class="pm-panel-head">
-          <input class="pm-search" data-pm-search value="${attr(state.query)}" placeholder="搜索节点、角色或文件" aria-label="搜索项目地图" />
+          <input class="pm-search" data-pm-search value="${attr(state.query)}" placeholder="Поиск узлов, ролей или файлов" aria-label="Поиск по карте проекта" />
         </div>
-        <div class="pm-list-meta" role="status">${counts.listed}/${counts.total} 个节点${counts.truncated ? ' · 列表最多显示 300 个' : ''}</div>
-        <div class="pm-node-list" aria-label="项目节点">
+        <div class="pm-list-meta" role="status">${counts.listed}/${counts.total} узлов${counts.truncated ? ' · в списке не более 300' : ''}</div>
+        <div class="pm-node-list" aria-label="Узлы проекта">
           ${nodes.length ? nodes.map(nodeRow).join('') : `
-            <div class="pm-error">没有匹配的节点。清空搜索可查看完整地图。</div>
+            <div class="pm-error">Нет подходящих узлов. Очистите поиск, чтобы увидеть всю карту.</div>
           `}
         </div>
       </aside>
-      <section class="pm-canvas-panel" aria-label="项目关系图">
+      <section class="pm-canvas-panel" aria-label="Граф связей проекта">
         <div class="pm-canvas-head">
-          <div class="pm-view-switch" role="group" aria-label="图谱视图">
-            <button type="button" data-pm-view="neighborhood" aria-pressed="${state.viewMode === 'neighborhood'}">邻域</button>
-            <button type="button" data-pm-view="overview" aria-pressed="${state.viewMode === 'overview'}">总览</button>
+          <div class="pm-view-switch" role="group" aria-label="Вид графа">
+            <button type="button" data-pm-view="neighborhood" aria-pressed="${state.viewMode === 'neighborhood'}">Окрестность</button>
+            <button type="button" data-pm-view="overview" aria-pressed="${state.viewMode === 'overview'}">Обзор</button>
           </div>
           <div class="pm-legend">${legend()}</div>
           <div class="pm-canvas-tools">
-            <span>${graph.nodes.length}/${graph.totalNodes} 节点 · ${graph.relations.length}/${graph.totalRelations} 关系${graph.nodesTruncated || graph.relationsTruncated ? ' · 已限量' : ''}</span>
-            <button type="button" data-pm-zoom="out" aria-label="缩小图谱">−</button>
-            <button type="button" data-pm-zoom="fit" aria-label="自动适配图谱">适配 ${Math.round(state.zoom * 100)}%</button>
-            <button type="button" data-pm-zoom="in" aria-label="放大图谱">＋</button>
+            <span>${graph.nodes.length}/${graph.totalNodes} узлов · ${graph.relations.length}/${graph.totalRelations} связей${graph.nodesTruncated || graph.relationsTruncated ? ' · ограничено' : ''}</span>
+            <button type="button" data-pm-zoom="out" aria-label="Уменьшить граф">−</button>
+            <button type="button" data-pm-zoom="fit" aria-label="Вписать граф">Вписать ${Math.round(state.zoom * 100)}%</button>
+            <button type="button" data-pm-zoom="in" aria-label="Увеличить граф">+</button>
           </div>
         </div>
-        <div class="pm-relation-filter" aria-label="关系类型筛选">
-          <button type="button" data-pm-relation="" aria-pressed="${!state.relationType}">全部关系</button>
+        <div class="pm-relation-filter" aria-label="Фильтр по типу связи">
+          <button type="button" data-pm-relation="" aria-pressed="${!state.relationType}">Все связи</button>
           ${relationTypes().map(type => `<button type="button" data-pm-relation="${attr(type)}" aria-pressed="${state.relationType === type}">${html(type)}</button>`).join('')}
         </div>
         <div class="pm-canvas" data-pm-canvas>${graphSvg(graph)}</div>
       </section>
-      <aside class="pm-panel right" aria-label="节点详情">
+      <aside class="pm-panel right" aria-label="Детали узла">
         <div class="pm-panel-head">
-          <button class="pm-mobile-back" type="button" data-pm-action="mobile-back" aria-label="返回节点列表">‹</button>
-          <strong>节点详情</strong>
+          <button class="pm-mobile-back" type="button" data-pm-action="mobile-back" aria-label="Вернуться к списку узлов">‹</button>
+          <strong>Детали узла</strong>
         </div>
         <div class="pm-detail-scroll">${inspectorView(current)}</div>
       </aside>
@@ -386,7 +386,7 @@
         <i class="pm-node-dot"></i>
         <span class="pm-node-copy">
           <strong>${html(node.title)}</strong>
-          <span>${impacted ? '可能受影响 · ' : ''}${html(source)}</span>
+          <span>${impacted ? 'Возможно затронуто · ' : ''}${html(source)}</span>
         </span>
       </button>
     `;
@@ -406,7 +406,7 @@
   function graphSvg(model, options = {}) {
     const shown = model.nodes;
     const relations = model.relations;
-    if (!shown.length) return '<div class="pm-empty"><div class="pm-empty-card"><p>当前视图没有可显示的节点</p></div></div>';
+    if (!shown.length) return '<div class="pm-empty"><div class="pm-empty-card"><p>В текущем виде нет узлов для отображения</p></div></div>';
     const selected = 'selectedId' in options ? options.selectedId : selectedNode()?.id;
     const positions = layoutNodes(shown, relations, { selectedId: selected });
     const positionIndex = new Map(positions.map(point => [point.id, point]));
@@ -439,7 +439,7 @@
       return `
         <g class="pm-graph-node${active ? ' is-selected' : ''}${impacted ? ' is-impacted' : ''}" data-pm-node="${attr(node.id)}"
           transform="translate(${point.x} ${point.y})" style="--pm-node-color:${kindColor(node.kind)};opacity:${dimmed ? '.48' : '1'}"
-          role="button" tabindex="${active ? '0' : '-1'}" aria-label="${attr(`${node.title}，${kindLabel(node.kind)}`)}">
+          role="button" tabindex="${active ? '0' : '-1'}" aria-label="${attr(`${node.title}, ${kindLabel(node.kind)}`)}">
           <rect width="128" height="46" rx="8"></rect>
           <circle cx="11" cy="14" r="3" fill="${kindColor(node.kind)}"></circle>
           <text x="19" y="17">${html(shorten(node.title, 16))}</text>
@@ -450,7 +450,7 @@
 
     return `
       <svg class="pm-graph" viewBox="0 0 960 ${maxY}" preserveAspectRatio="xMidYMid meet"
-        data-pm-graph aria-label="Project Map 关系图：方向键切换节点，回车打开详情">
+        data-pm-graph aria-label="Граф связей карты проекта: стрелки переключают узлы, Enter открывает детали">
         <defs>
           <marker id="pm-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" opacity=".35"></path>
@@ -461,7 +461,7 @@
           <g>${nodeMarkup}</g>
         </g>
       </svg>
-      ${model.nodesTruncated || model.relationsTruncated ? `<div class="pm-graph-notice" role="status">画布已限制为 ${model.nodes.length} 个节点和 ${model.relations.length} 条关系；可用类型筛选或邻域视图缩小范围。完整列表仍保留在左侧。</div>` : ''}
+      ${model.nodesTruncated || model.relationsTruncated ? `<div class="pm-graph-notice" role="status">На холсте ограничено ${model.nodes.length} узлов и ${model.relations.length} связей; используйте фильтр по типу или вид окрестности, чтобы сузить область. Полный список остаётся слева.</div>` : ''}
     `;
   }
 
@@ -504,7 +504,7 @@
   }
 
   function detailView(node) {
-    if (!node) return '<p class="pm-detail-summary">选择一个节点查看说明与源码证据。</p>';
+    if (!node) return '<p class="pm-detail-summary">Выберите узел, чтобы увидеть описание и доказательства из исходного кода.</p>';
     const sources = node.sources || [];
     const related = (state.dataset?.relations || []).filter(
       relation => relation.source_id === node.id || relation.target_id === node.id,
@@ -513,33 +513,33 @@
     const relationDetail = selectedRelation();
     return `
       <div>
-        <span class="pm-kind-chip" style="--pm-node-color:${kindColor(node.kind)}"><i></i>${html(kindLabel(node.kind))} · ${node.layer === 'semantic' ? 'AI 推断' : '确定性'}</span>
+        <span class="pm-kind-chip" style="--pm-node-color:${kindColor(node.kind)}"><i></i>${html(kindLabel(node.kind))} · ${node.layer === 'semantic' ? 'AI-вывод' : 'Детерминировано'}</span>
         <h2 class="pm-detail-title">${html(node.title)}</h2>
-        <p class="pm-detail-summary">${html(node.summary || '该节点来自项目的确定性结构或语义分析。')}</p>
-        <div class="pm-fact-row" aria-label="节点可信度和状态">
-          <span>可信度 ${html(node.confidence || 'unknown')}</span>
-          <span>${node.stale ? '证据已过期' : '证据有效'}</span>
-          <span>${html(node.layer === 'semantic' ? 'AI 语义层' : '解析器证据')}</span>
+        <p class="pm-detail-summary">${html(node.summary || 'Этот узел получен из детерминированной структуры или семантического анализа проекта.')}</p>
+        <div class="pm-fact-row" aria-label="Достоверность и состояние узла">
+          <span>Достоверность ${html(node.confidence || 'unknown')}</span>
+          <span>${node.stale ? 'Доказательства устарели' : 'Доказательства актуальны'}</span>
+          <span>${html(node.layer === 'semantic' ? 'Семантический слой AI' : 'Доказательства парсера')}</span>
         </div>
-        <div class="pm-node-actions" aria-label="节点动作">
-          <button class="pm-button" type="button" data-pm-action="add-context" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>添加上下文</button>
-          <button class="pm-button" type="button" data-pm-action="prefill-plan" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>生成 Plan</button>
-          <button class="pm-button" type="button" data-pm-action="prefill-task" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>创建任务</button>
-          ${state.testSuggestions.length ? `<button class="pm-button" type="button" data-pm-action="prefill-tests" ${actionsLocked() ? 'disabled' : ''}>建议测试</button>` : ''}
+        <div class="pm-node-actions" aria-label="Действия с узлом">
+          <button class="pm-button" type="button" data-pm-action="add-context" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>Добавить контекст</button>
+          <button class="pm-button" type="button" data-pm-action="prefill-plan" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>Создать план</button>
+          <button class="pm-button" type="button" data-pm-action="prefill-task" ${state.contextPackLoading || actionsLocked() ? 'disabled' : ''}>Создать задачу</button>
+          ${state.testSuggestions.length ? `<button class="pm-button" type="button" data-pm-action="prefill-tests" ${actionsLocked() ? 'disabled' : ''}>Предложить тесты</button>` : ''}
         </div>
-        ${state.stale ? '<p class="pm-warning">源码或地图版本已经变化，刷新地图后才能创建可信上下文。</p>' : ''}
-        ${node.stale_reasons?.length ? `<p class="pm-warning">${node.stale_reasons.map(html).join('；')}</p>` : ''}
+        ${state.stale ? '<p class="pm-warning">Исходный код или версия карты изменились; создать надёжный контекст можно после обновления карты.</p>' : ''}
+        ${node.stale_reasons?.length ? `<p class="pm-warning">${node.stale_reasons.map(html).join('; ')}</p>` : ''}
         ${node.roles?.length ? `
           <div class="pm-detail-section">
-            <strong>角色</strong>
+            <strong>Роли</strong>
             <p class="pm-detail-summary">${node.roles.map(html).join(' · ')}</p>
           </div>
         ` : ''}
         <div class="pm-detail-section">
-          <strong>源码证据 ${sources.length ? `· ${sources.length}` : ''}</strong>
+          <strong>Доказательства из исходного кода ${sources.length ? `· ${sources.length}` : ''}</strong>
           ${sources.length ? `
             <button class="pm-button" type="button" data-pm-action="impact" ${state.impactLoading || viewingHistory() ? 'disabled' : ''}>
-              ${state.impactLoading ? '分析中…' : '分析该节点的可能影响'}
+              ${state.impactLoading ? 'Анализ…' : 'Проанализировать возможное влияние узла'}
             </button>
             ${state.impactSummary ? `<p class="pm-detail-summary" style="margin-top:8px;">${html(state.impactSummary)}</p>` : ''}
             ${impactView(index)}
@@ -549,18 +549,18 @@
               <code>${html(source.path)}</code>
               <span>${html(source.symbol_key || '')}${source.line_start ? ` · L${Number(source.line_start)}${source.line_end && source.line_end !== source.line_start ? `–${Number(source.line_end)}` : ''}` : ''}</span>
             </button>
-          `).join('') : '<p class="pm-detail-summary">暂无可跳转的源码证据。</p>'}
+          `).join('') : '<p class="pm-detail-summary">Нет доказательств из исходного кода для перехода.</p>'}
         </div>
         <div class="pm-detail-section">
-          <strong>关系 ${related.length ? `· ${related.length}` : ''}</strong>
+          <strong>Связи ${related.length ? `· ${related.length}` : ''}</strong>
           ${related.length ? related.slice(0, 20).map(relation => {
             const outward = relation.source_id === node.id;
             const other = index.get(outward ? relation.target_id : relation.source_id);
             return `<button class="pm-relation-row${state.selectedRelationId === relation.id ? ' is-active' : ''}" type="button" data-pm-edge="${attr(relation.id)}">
               <span>${outward ? '→' : '←'} ${html(relation.label || relation.type)}</span>
-              <small>${html(other?.title || '未知节点')}</small>
+              <small>${html(other?.title || 'Неизвестный узел')}</small>
             </button>`;
-          }).join('') : '<p class="pm-detail-summary">暂无关系。</p>'}
+          }).join('') : '<p class="pm-detail-summary">Связей нет.</p>'}
         </div>
         ${relationDetail ? relationInspector(relationDetail, index) : ''}
       </div>
@@ -575,55 +575,55 @@
 
   function freshnessView() {
     const payload = state.freshness;
-    if (!payload) return '<p class="pm-detail-summary">正在读取源码变化…</p>';
+    if (!payload) return '<p class="pm-detail-summary">Чтение изменений исходного кода…</p>';
     const changes = payload.changes || {};
     const groups = [
-      ['新增', changes.added || []],
-      ['修改', changes.modified || []],
-      ['删除', changes.deleted || []],
-      ['重命名', changes.renamed || []],
-      ['扫描未确认', changes.unknown_missing || []],
+      ['Добавлено', changes.added || []],
+      ['Изменено', changes.modified || []],
+      ['Удалено', changes.deleted || []],
+      ['Переименовано', changes.renamed || []],
+      ['Сканирование не подтверждено', changes.unknown_missing || []],
     ];
     return `<div>
-      <h2 class="pm-detail-title">源码新鲜度</h2>
-      <p class="pm-detail-summary">地图 v${state.revision} · ${payload.stale ? '源码已有变化' : '与源码一致'} · ${html(payload.scan_completeness || payload.completeness || 'unknown')}</p>
-      ${payload.partial ? `<p class="pm-warning">本次扫描不完整：${html(payload.partial_reason || payload.reason || 'unknown')}</p>` : ''}
+      <h2 class="pm-detail-title">Актуальность исходного кода</h2>
+      <p class="pm-detail-summary">Карта v${state.revision} · ${payload.stale ? 'Исходный код изменился' : 'Соответствует исходному коду'} · ${html(payload.scan_completeness || payload.completeness || 'unknown')}</p>
+      ${payload.partial ? `<p class="pm-warning">Это сканирование неполное: ${html(payload.partial_reason || payload.reason || 'unknown')}</p>` : ''}
       ${groups.map(([label, items]) => `<div class="pm-detail-section"><strong>${label} · ${items.length}</strong>
-        ${items.length ? items.slice(0, 40).map(item => `<p class="pm-change-row">${html(item.path || `${item.from || ''} → ${item.to || ''}`)}</p>`).join('') : '<p class="pm-detail-summary">无</p>'}
+        ${items.length ? items.slice(0, 40).map(item => `<p class="pm-change-row">${html(item.path || `${item.from || ''} → ${item.to || ''}`)}</p>`).join('') : '<p class="pm-detail-summary">Нет</p>'}
       </div>`).join('')}
     </div>`;
   }
 
   function historyView() {
-    if (state.historyLoading) return '<p class="pm-detail-summary">正在读取历史版本…</p>';
+    if (state.historyLoading) return '<p class="pm-detail-summary">Чтение истории версий…</p>';
     const compare = state.revisionCompare;
     const viewing = Number(state.timelineRevision || 0);
     const latest = state.revisions[0] ? Number(state.revisions[0].revision) : state.revision;
     const isHistory = viewing && viewing !== latest;
     return `<div>
-      <h2 class="pm-detail-title">架构演化时间轴</h2>
-      <p class="pm-detail-summary">拖动或点击版本查看该时刻的架构快照。历史版本只读，不会回滚或替换当前源码对应关系。</p>
-      ${isHistory ? `<div class="pm-timeline-banner" role="status">正在查看历史版本 v${viewing}（只读）<button class="pm-button" type="button" data-pm-action="timeline-latest">回到最新 v${latest}</button></div>` : ''}
+      <h2 class="pm-detail-title">Таймлайн эволюции архитектуры</h2>
+      <p class="pm-detail-summary">Перетащите или нажмите версию, чтобы увидеть снимок архитектуры на тот момент. Исторические версии доступны только для чтения: они не откатывают и не заменяют текущее соответствие исходному коду.</p>
+      ${isHistory ? `<div class="pm-timeline-banner" role="status">Просмотр исторической версии v${viewing} (только чтение)<button class="pm-button" type="button" data-pm-action="timeline-latest">К последней v${latest}</button></div>` : ''}
       ${timelineChart()}
-      ${state.timelineLoading ? '<p class="pm-detail-summary">正在读取该版本图谱…</p>' : ''}
-      ${state.revisions.length > 1 ? `<button class="pm-button" type="button" data-pm-action="compare-latest">比较最近两版</button>` : ''}
+      ${state.timelineLoading ? '<p class="pm-detail-summary">Чтение графа этой версии…</p>' : ''}
+      ${state.revisions.length > 1 ? `<button class="pm-button" type="button" data-pm-action="compare-latest">Сравнить две последние версии</button>` : ''}
       ${compare ? revisionCompareView(compare) : ''}
-      <div class="pm-detail-section"><strong>修订记录 · ${state.revisions.length}</strong>
+      <div class="pm-detail-section"><strong>История ревизий · ${state.revisions.length}</strong>
         ${state.revisions.map(item => {
           const rev = Number(item.revision);
           const active = rev === (viewing || latest);
           return `<button class="pm-revision-row${active ? ' is-active' : ''}" type="button" data-pm-timeline="${rev}" aria-pressed="${active}">
-          <b>v${rev}</b><span>${Number(item.node_count || 0)} 节点 · ${Number(item.relation_count || 0)} 关系 · ${html(item.completeness || 'unknown')}</span>
+          <b>v${rev}</b><span>${Number(item.node_count || 0)} узлов · ${Number(item.relation_count || 0)} связей · ${html(item.completeness || 'unknown')}</span>
           <small>scanner ${html(item.scanner_version || 'unknown')} · prompt ${html(item.prompt_version || 'unknown')}</small>
         </button>`;
-        }).join('') || '<p class="pm-detail-summary">暂无历史版本。</p>'}
+        }).join('') || '<p class="pm-detail-summary">Истории версий нет.</p>'}
       </div>
     </div>`;
   }
 
   function timelineChart() {
     const items = [...state.revisions].sort((a, b) => Number(a.revision) - Number(b.revision));
-    if (items.length < 2) return '<p class="pm-detail-summary">至少需要两个版本才能显示演化趋势。</p>';
+    if (items.length < 2) return '<p class="pm-detail-summary">Для отображения динамики нужно минимум две версии.</p>';
     const key = state.timelineMetric === 'relations' ? 'relation_count' : 'node_count';
     const values = items.map(item => Number(item[key] || 0));
     const max = Math.max(1, ...values);
@@ -638,11 +638,11 @@
     const line = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
     const viewing = Number(state.timelineRevision || 0) || (state.revisions[0] ? Number(state.revisions[0].revision) : 0);
     return `<div class="pm-timeline">
-      <div class="pm-timeline-metric" role="group" aria-label="趋势指标">
-        <button type="button" data-pm-metric="nodes" aria-pressed="${state.timelineMetric !== 'relations'}">节点</button>
-        <button type="button" data-pm-metric="relations" aria-pressed="${state.timelineMetric === 'relations'}">关系</button>
+      <div class="pm-timeline-metric" role="group" aria-label="Показатель динамики">
+        <button type="button" data-pm-metric="nodes" aria-pressed="${state.timelineMetric !== 'relations'}">Узлы</button>
+        <button type="button" data-pm-metric="relations" aria-pressed="${state.timelineMetric === 'relations'}">Связи</button>
       </div>
-      <svg class="pm-timeline-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="架构规模随版本演化趋势">
+      <svg class="pm-timeline-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-label="Динамика размера архитектуры по версиям">
         <path class="pm-timeline-line" d="${line}" fill="none" />
         ${points.map(p => `<circle class="pm-timeline-dot${p.rev === viewing ? ' is-active' : ''}" data-pm-timeline="${p.rev}" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4"><title>v${p.rev} · ${p.value}</title></circle>`).join('')}
       </svg>
@@ -650,26 +650,26 @@
   }
 
   function revisionCompareView(compare) {
-    const line = (label, payload) => `${label}：+${payload?.added?.length || 0} / −${payload?.removed?.length || 0} / ~${payload?.modified?.length || 0}`;
+    const line = (label, payload) => `${label}: +${payload?.added?.length || 0} / −${payload?.removed?.length || 0} / ~${payload?.modified?.length || 0}`;
     return `<div class="pm-compare-card">
       <strong>v${Number(compare.from_revision)} → v${Number(compare.to_revision)}</strong>
-      <span>${html(line('文件', compare.files))}</span>
-      <span>${html(line('节点', compare.nodes))}</span>
-      <span>${html(line('关系', compare.relations))}</span>
+      <span>${html(line('Файлы', compare.files))}</span>
+      <span>${html(line('Узлы', compare.nodes))}</span>
+      <span>${html(line('Связи', compare.relations))}</span>
     </div>`;
   }
 
   function impactView(nodeIndex) {
     if (!state.impactItems.length) return '';
-    return `<div class="pm-impact-list" aria-label="影响路径">
+    return `<div class="pm-impact-list" aria-label="Пути влияния">
       ${state.impactItems.slice(0, 30).map(item => {
         const path = item.path || [];
         const pathText = path.length
           ? path.map(edge => `${nodeIndex.get(edge.source_id)?.title || edge.source_title || edge.source_id} → ${nodeIndex.get(edge.target_id)?.title || edge.target_title || edge.target_id}`).join(' · ')
-          : '直接命中源码';
+          : 'Прямое попадание в исходный код';
         return `<button type="button" class="pm-impact-row" data-pm-node="${attr(item.node_id)}">
           <strong>${html(item.title || item.node_id)}</strong>
-          <span>${item.distance ? `${item.distance} 跳 · ` : ''}${html(pathText)}</span>
+          <span>${item.distance ? `${item.distance} переходов · ` : ''}${html(pathText)}</span>
         </button>`;
       }).join('')}
     </div>`;
@@ -679,14 +679,14 @@
     const source = nodeIndex.get(relation.source_id);
     const target = nodeIndex.get(relation.target_id);
     return `<div class="pm-detail-section pm-relation-inspector">
-      <strong>关系证据</strong>
+      <strong>Доказательства связи</strong>
       <p class="pm-detail-summary"><b>${html(source?.title || relation.source_id)}</b> → <b>${html(target?.title || relation.target_id)}</b></p>
       <div class="pm-fact-row">
         <span>${html(relation.type)}</span>
-        <span>${html(relation.provenance === 'llm_inferred' ? 'AI 推断' : '解析器')}</span>
-        <span>可信度 ${html(relation.confidence || 'unknown')}</span>
+        <span>${html(relation.provenance === 'llm_inferred' ? 'AI-вывод' : 'Парсер')}</span>
+        <span>Достоверность ${html(relation.confidence || 'unknown')}</span>
       </div>
-      <p class="pm-detail-summary">${html(relation.label || '该关系没有补充说明。')}${relation.evidence_ids?.length ? ` · ${relation.evidence_ids.length} 条证据` : ''}${relation.stale ? ' · 已过期' : ''}</p>
+      <p class="pm-detail-summary">${html(relation.label || 'У этой связи нет дополнительного описания.')}${relation.evidence_ids?.length ? ` · ${relation.evidence_ids.length} доказательств` : ''}${relation.stale ? ' · устарело' : ''}</p>
     </div>`;
   }
 
@@ -729,7 +729,7 @@
         nodeId: state.selectedNodeId,
         suggestions: state.testSuggestions,
       });
-      state.adapter?.notify?.('已把建议测试放入验证面板，请确认后运行');
+      state.adapter?.notify?.('Предложенные тесты добавлены в панель проверки; подтвердите и запустите');
     });
     target?.querySelector('[data-pm-action="compare-latest"]')?.addEventListener('click', () => {
       void compareLatestRevisions();
@@ -864,7 +864,7 @@
       if (generation !== state.requestGeneration || ctx.sessionId !== context().sessionId) return;
       state.revisions = payload.items || [];
     } catch (error) {
-      state.error = error?.message || '历史版本加载失败';
+      state.error = error?.message || 'Не удалось загрузить историю версий';
     } finally {
       state.historyLoading = false;
       if (state.open) renderContent();
@@ -913,7 +913,7 @@
         syncSelectionWithVisibleNodes();
       }
     } catch (error) {
-      state.error = error?.message || '历史版本图谱加载失败';
+      state.error = error?.message || 'Не удалось загрузить граф исторической версии';
     } finally {
       if (generation === state.requestGeneration && sessionId === context().sessionId) {
         state.timelineLoading = false;
@@ -934,7 +934,7 @@
       state.revisionCompare = payload;
       renderContent();
     } catch (error) {
-      state.error = error?.message || '版本比较失败';
+      state.error = error?.message || 'Не удалось сравнить версии';
       renderShell();
     }
   }
@@ -1021,7 +1021,7 @@
       void checkFreshness(generation, ctx.sessionId);
     } catch (error) {
       if (generation !== state.requestGeneration || !state.open) return;
-      state.error = error?.message || 'Project Map 加载失败';
+      state.error = error?.message || 'Не удалось загрузить карту проекта';
       renderShell();
     }
   }
@@ -1053,7 +1053,7 @@
       const endpoint = state.dataset ? 'refresh' : 'generate';
       const payload = await request(`${apiBase(sessionId)}/${endpoint}`, {
         method: 'POST',
-        body: JSON.stringify({ preferred_language: 'zh' }),
+        body: JSON.stringify({ preferred_language: _i18nLang === 'en' ? 'en' : 'ru' }),
       });
       if (
         generation !== state.requestGeneration
@@ -1062,12 +1062,12 @@
         || (storageKey && payload.storage_key !== storageKey)
       ) return;
       state.run = payload.run;
-      state.runMessage = payload.deduplicated ? '已有生成任务正在运行' : '已加入生成队列';
+      state.runMessage = payload.deduplicated ? 'Задача создания уже выполняется' : 'Добавлено в очередь создания';
       renderShell();
       subscribe(state.run.run_id);
     } catch (error) {
       if (generation === state.requestGeneration && sessionId === context().sessionId && state.open) {
-        state.error = error?.message || '无法启动 Project Map 生成';
+        state.error = error?.message || 'Не удалось запустить создание карты проекта';
         renderShell();
       }
     }
@@ -1103,11 +1103,11 @@
       state.stale = Boolean(payload.stale);
       const direct = (payload.impacts || []).filter(item => item.level === 'direct').length;
       const indirect = Math.max(0, (payload.impacts || []).length - direct);
-      state.impactSummary = `找到 ${direct} 个直接节点、${indirect} 个可能受影响的上游节点${payload.truncated ? '（结果已截断）' : ''}。`;
+      state.impactSummary = `Найдено ${direct} прямых узлов и ${indirect} возможно затронутых вышестоящих узлов${payload.truncated ? ' (результат усечён)' : ''}.`;
       renderShell();
     } catch (error) {
       if (generation === state.requestGeneration && sessionId === context().sessionId && state.open) {
-        state.impactSummary = error?.message || '影响分析失败';
+        state.impactSummary = error?.message || 'Не удалось проанализировать влияние';
       }
     } finally {
       if (generation === state.requestGeneration && sessionId === context().sessionId) {
@@ -1143,7 +1143,7 @@
       if (action === 'prefill-task') state.adapter?.prefillTask?.(descriptor);
       close();
     } catch (error) {
-      state.error = error?.message || '上下文包创建失败';
+      state.error = error?.message || 'Не удалось создать пакет контекста';
       renderShell();
     } finally {
       state.contextPackLoading = false;
@@ -1181,7 +1181,7 @@
         source.close();
         if (state.source === source) state.source = null;
         if (payload.status === 'completed') {
-          state.adapter?.notify?.('Project Map 已更新');
+          state.adapter?.notify?.('Карта проекта обновлена');
           void loadMap();
         }
       }
@@ -1229,7 +1229,7 @@
       }
     } catch (error) {
       if (generation === state.requestGeneration && sessionId === context().sessionId && state.open) {
-        state.error = error?.message || '生成状态连接中断';
+        state.error = error?.message || 'Соединение состояния создания прервано';
         renderShell();
       }
     }
@@ -1252,11 +1252,11 @@
         || !state.open
         || payload.storage_key !== storageKey
       ) return;
-      state.runMessage = '正在取消';
+      state.runMessage = 'Отмена…';
       renderShell();
     } catch (error) {
       if (generation === state.requestGeneration && sessionId === context().sessionId && state.open) {
-        state.error = error?.message || '取消失败';
+        state.error = error?.message || 'Не удалось отменить';
         renderShell();
       }
     }

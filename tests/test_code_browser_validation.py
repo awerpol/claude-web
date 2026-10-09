@@ -55,7 +55,7 @@ class CodeBrowserValidationRegistryTest(unittest.TestCase):
     def create_recipe(self):
         return self.registry.create_recipe(
             "owner",
-            name="Code 页面基础验收",
+            name="Базовая приёмка страницы Code",
             url="http://127.0.0.1:8765/code",
             viewport={"width": 1440, "height": 900, "device_scale_factor": 1},
             steps=[
@@ -156,7 +156,7 @@ class CodeBrowserValidationRegistryTest(unittest.TestCase):
 
         unavailable = self.registry.create_run("owner", str(recipe["id"]))
         skipped = self.registry.mark_unavailable(
-            "owner", str(unavailable["id"]), "浏览器扩展未连接"
+            "owner", str(unavailable["id"]), "Расширение браузера не подключено"
         )
         self.assertEqual("skipped", skipped["status"])
         self.assertEqual("browser_unavailable", skipped["reason_code"])

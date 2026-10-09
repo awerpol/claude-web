@@ -16,7 +16,7 @@ class LightContextTest(unittest.TestCase):
         return [
             {
                 "type": "user_input",
-                "text": "实现设置页，并保留最近几轮用户要求。",
+                "text": "Реализуй страницу настроек и сохрани требования пользователя за последние несколько ходов.",
                 "docs": [{"path": "/tmp/spec.md"}],
             },
             {
@@ -24,7 +24,7 @@ class LightContextTest(unittest.TestCase):
                 "message": {
                     "content": [
                         {"type": "thinking", "thinking": "PRIVATE_CHAIN_OF_THOUGHT"},
-                        {"type": "text", "text": "决定沿用现有设置卡片。"},
+                        {"type": "text", "text": "Решено оставить существующую карточку настроек."},
                         {
                             "type": "tool_use",
                             "id": "read-1",
@@ -47,7 +47,7 @@ class LightContextTest(unittest.TestCase):
                         {
                             "type": "tool_result",
                             "tool_use_id": "read-1",
-                            "content": "关键配置位于第 20 行。\n" + ("R" * 5000),
+                            "content": "Ключевая настройка находится на строке 20.\n" + ("R" * 5000),
                         },
                         {
                             "type": "tool_result",
@@ -66,11 +66,11 @@ class LightContextTest(unittest.TestCase):
     def test_light_snippet_keeps_summaries_but_drops_raw_thinking_and_diff(self):
         snippet = server.format_light_context_snippet(self.sample_events(), max_chars=5000)
 
-        self.assertIn("用户要求：实现设置页", snippet)
-        self.assertIn("本轮附件：/tmp/spec.md", snippet)
-        self.assertIn("读取 /repo/app.py L20-L39", snippet)
-        self.assertIn("关键配置位于第 20 行", snippet)
-        self.assertIn("修改摘要：M app.py", snippet)
+        self.assertIn("Запрос пользователя: Реализуй страницу настроек", snippet)
+        self.assertIn("Вложения этого хода: /tmp/spec.md", snippet)
+        self.assertIn("Чтение /repo/app.py L20-L39", snippet)
+        self.assertIn("Ключевая настройка находится на строке 20", snippet)
+        self.assertIn("Сводка изменений: M app.py", snippet)
         self.assertNotIn("PRIVATE_CHAIN_OF_THOUGHT", snippet)
         self.assertNotIn("FULL_DIFF_SHOULD_NOT_SURVIVE", snippet)
         self.assertNotIn("R" * 600, snippet)
@@ -79,17 +79,17 @@ class LightContextTest(unittest.TestCase):
         events = [
             {
                 "type": "user_input",
-                "text": "【会话已压缩】\n- 目标：完成轻上下文模式",
+                "text": "[Сессия сжата]\n- Цель: завершить режим облегчённого контекста",
                 "compacted": True,
                 "remote_detached": True,
             },
-            {"type": "user_input", "text": "最近要求：开关默认开启。"},
+            {"type": "user_input", "text": "Последнее требование: переключатель включён по умолчанию."},
             {
                 "type": "assistant",
                 "message": {
                     "content": [
                         {"type": "thinking", "thinking": "DO_NOT_FORWARD"},
-                        {"type": "text", "text": "已确认沿用 localStorage。"},
+                        {"type": "text", "text": "Подтверждено использование localStorage."},
                     ]
                 },
             },
@@ -97,10 +97,10 @@ class LightContextTest(unittest.TestCase):
 
         context = server.build_compacted_resume_context(events)
 
-        self.assertIn("Code 轻上下文恢复", context)
-        self.assertIn("目标：完成轻上下文模式", context)
-        self.assertIn("最近要求：开关默认开启", context)
-        self.assertIn("已确认沿用 localStorage", context)
+        self.assertIn("Восстановление облегчённого контекста Code", context)
+        self.assertIn("Цель: завершить режим облегчённого контекста", context)
+        self.assertIn("Последнее требование: переключатель включён по умолчанию", context)
+        self.assertIn("Подтверждено использование localStorage", context)
         self.assertNotIn("DO_NOT_FORWARD", context)
 
     def test_detached_compaction_forces_a_fresh_remote_session(self):
@@ -125,18 +125,18 @@ class LegacyChatCompactionTest(unittest.IsolatedAsyncioTestCase):
     async def test_chat_compaction_detaches_remote_and_keeps_recent_turn(self):
         session_id = "test-light-context-" + uuid.uuid4().hex
         events = [
-            {"type": "user_input", "text": "第一轮目标"},
+            {"type": "user_input", "text": "Цель первого хода"},
             {
                 "type": "assistant",
-                "message": {"content": [{"type": "text", "text": "第一轮结论"}]},
+                "message": {"content": [{"type": "text", "text": "Вывод первого хода"}]},
             },
-            {"type": "user_input", "text": "第二轮要求"},
+            {"type": "user_input", "text": "Требование второго хода"},
             {
                 "type": "assistant",
-                "message": {"content": [{"type": "text", "text": "第二轮结论"}]},
+                "message": {"content": [{"type": "text", "text": "Вывод второго хода"}]},
             },
         ]
-        server.upsert_session(session_id, "聊天压缩测试", os.path.expanduser("~"), "chat")
+        server.upsert_session(session_id, "Тест сжатия чата", os.path.expanduser("~"), "chat")
         server.save_events(session_id, events)
         server.set_session_remote_state(session_id, "old-remote-id", True)
         request = SimpleNamespace(
@@ -170,7 +170,7 @@ class LegacyChatCompactionTest(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(compacted[0]["compacted"])
             self.assertTrue(compacted[0]["remote_detached"])
             self.assertEqual("light-v1", compacted[0]["context_strategy"])
-            self.assertEqual("第二轮要求", compacted[1]["text"])
+            self.assertEqual("Требование второго хода", compacted[1]["text"])
             self.assertNotEqual("old-remote-id", row["remote_session_id"])
             self.assertEqual(0, row["remote_ready"])
 
@@ -222,10 +222,10 @@ class _FakeNativeCompactFailureTurn:
 class NativeCodeCompactionTest(unittest.IsolatedAsyncioTestCase):
     async def test_code_compact_uses_native_control_endpoint_and_keeps_1m_limit(self):
         session_id = "test-native-compact-" + uuid.uuid4().hex
-        server.upsert_session(session_id, "原生压缩测试", "/tmp/native-project", "code")
+        server.upsert_session(session_id, "Тест нативного сжатия", "/tmp/native-project", "code")
         server.set_session_remote_state(session_id, "native-compact-session", True)
         server.set_session_runtime_origin(session_id, server._RUNTIME_ORIGIN_AGENT_SDK)
-        server.save_events(session_id, [{"type": "user_input", "text": "保留这条用户要求"}])
+        server.save_events(session_id, [{"type": "user_input", "text": "Сохранить это требование пользователя"}])
 
         try:
             with patch.object(server._claude_agent_bridge, "ensure_started", new=AsyncMock(return_value=True)), patch.object(
@@ -248,7 +248,7 @@ class NativeCodeCompactionTest(unittest.IsolatedAsyncioTestCase):
             params = open_turn.await_args.args[1]
             self.assertEqual("/compact", params["content"][0]["text"])
             stored = server.load_events(session_id)
-            self.assertEqual("保留这条用户要求", stored[0]["text"])
+            self.assertEqual("Сохранить это требование пользователя", stored[0]["text"])
             self.assertFalse(any(event.get("type") == "user_input" and event.get("text") == "/compact" for event in stored))
         finally:
             server.save_events(session_id, [])
@@ -268,7 +268,7 @@ class NativeCodeCompactionTest(unittest.IsolatedAsyncioTestCase):
         ):
             with self.subTest(label=label):
                 session_id = "test-native-compact-failure-" + uuid.uuid4().hex
-                server.upsert_session(session_id, "压缩失败测试", "/tmp/native-project", "code")
+                server.upsert_session(session_id, "Тест сбоя сжатия", "/tmp/native-project", "code")
                 try:
                     with patch.object(
                         server._claude_agent_bridge,
@@ -312,7 +312,7 @@ class CorruptedToolHistoryErrorDetectorTest(unittest.TestCase):
 class AutoRecoverCorruptedSdkSessionTest(unittest.IsolatedAsyncioTestCase):
     async def _make_session(self, events):
         session_id = str(uuid.uuid4())
-        server.upsert_session(session_id, "恢复测试", os.path.expanduser("~"), "code")
+        server.upsert_session(session_id, "Тест восстановления", os.path.expanduser("~"), "code")
         server.save_events(session_id, events)
         server.set_session_remote_state(session_id, "old-remote-id", True)
         server.set_session_runtime_origin(session_id, server._RUNTIME_ORIGIN_AGENT_SDK)
@@ -327,10 +327,10 @@ class AutoRecoverCorruptedSdkSessionTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_recovery_writes_sdk_recovered_marker(self):
         events = [
-            {"type": "user_input", "text": "第一轮"},
-            {"type": "assistant", "message": {"content": [{"type": "text", "text": "结论一"}]}},
-            {"type": "user_input", "text": "第二轮"},
-            {"type": "assistant", "message": {"content": [{"type": "text", "text": "结论二"}]}},
+            {"type": "user_input", "text": "Первый ход"},
+            {"type": "assistant", "message": {"content": [{"type": "text", "text": "Первый вывод"}]}},
+            {"type": "user_input", "text": "Второй ход"},
+            {"type": "assistant", "message": {"content": [{"type": "text", "text": "Второй вывод"}]}},
         ]
         session_id = await self._make_session(events)
         fake_process = SimpleNamespace(
@@ -365,9 +365,9 @@ class AutoRecoverCorruptedSdkSessionTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_recovery_fallback_on_haiku_timeout(self):
         events = [
-            {"type": "user_input", "text": "任务一"},
+            {"type": "user_input", "text": "Задача первая"},
             {"type": "assistant", "message": {"content": [{"type": "text", "text": "done"}]}},
-            {"type": "user_input", "text": "任务二"},
+            {"type": "user_input", "text": "Задача вторая"},
         ]
         session_id = await self._make_session(events)
 
@@ -398,12 +398,12 @@ class AutoRecoverCorruptedSdkSessionTest(unittest.IsolatedAsyncioTestCase):
         events = [
             {
                 "type": "user_input",
-                "text": "【会话已自动恢复 · 以下为之前对话的摘要】\n\n- goal: keep going",
+                "text": "[Сессия автоматически восстановлена · ниже сводка предыдущего диалога]\n\n- goal: keep going",
                 "compacted": True,
                 "sdk_recovered": True,
                 "context_strategy": "sdk-recovery-v1",
             },
-            {"type": "user_input", "text": "继续"},
+            {"type": "user_input", "text": "Продолжить"},
         ]
         resume = server.build_compacted_resume_context(events)
         self.assertIn("goal: keep going", resume)

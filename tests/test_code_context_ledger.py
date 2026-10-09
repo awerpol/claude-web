@@ -61,7 +61,7 @@ class CodeContextLedgerTest(unittest.TestCase):
         self.assertEqual("7", item["revision"])
         self.assertEqual("pack-1", item["descriptor"]["pack_id"])
 
-        with self.assertRaisesRegex(CodeContextLedgerError, "仅支持 Code 会话") as error:
+        with self.assertRaisesRegex(CodeContextLedgerError, "Журнал контекста поддерживается только в сессиях Code") as error:
             self.ledger.record_user_pinned("chat-a", descriptor={"path": "README.md"})
         self.assertEqual("code_session_required", error.exception.code)
         with self.assertRaises(CodeContextLedgerError) as error:

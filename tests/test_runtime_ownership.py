@@ -287,7 +287,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
             self.assertEqual("plan_ready", result["reason"])
             interrupt.assert_awaited_once_with(session_id)
             events = server.load_events(session_id)
-            self.assertFalse(any(event.get("message") == "用户中止" for event in events))
+            self.assertFalse(any(event.get("message") == "\u7528\u6237\u4e2d\u6b62" for event in events))
             plan_events = [
                 event for event in events
                 if event.get("type") == "system" and event.get("subtype") == "plan_ready"
@@ -331,12 +331,12 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
         mixed = {
             "type": "assistant",
             "message": {"content": [
-                {"type": "text", "text": "已经完成的部分"},
+                {"type": "text", "text": "Уже готовая часть"},
                 {"type": "text", "text": message},
             ]},
         }
         cleaned = server._strip_agent_sdk_api_error_text(mixed, message)
-        self.assertEqual("已经完成的部分", server._agent_sdk_assistant_text(cleaned))
+        self.assertEqual("Уже готовая часть", server._agent_sdk_assistant_text(cleaned))
 
     def test_abort_diagnostic_and_missing_final_text_are_normalized(self):
         abort_result = {
@@ -352,16 +352,16 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
             "type": "result",
             "subtype": "success",
             "is_error": False,
-            "result": "现在根因很清楚了。让我给你最终总结：\n\n完整结论",
+            "result": "Теперь причина ясна. Финальный итог:\n\nПолное заключение",
         }
         recovered = server._agent_sdk_final_text_event(
             result,
-            "现在根因很清楚了。让我给你最终总结：",
+            "Теперь причина ясна. Финальный итог:",
             "local-session",
             "turn-1",
         )
         self.assertTrue(recovered["recovered_final"])
-        self.assertEqual("完整结论", recovered["message"]["content"][0]["text"])
+        self.assertEqual("Полное заключение", recovered["message"]["content"][0]["text"])
 
     async def test_transport_failure_auto_reconnects_without_replaying_content(self):
         session_id = "runtime-auto-reconnect-" + uuid.uuid4().hex
@@ -568,7 +568,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
         }
         # Two CJK characters plus four ASCII characters are estimated as three
         # newly submitted tokens; the 380k existing/cache input is not charged.
-        self.assertEqual(324, server._agent_loop_usage_total(usage, "abcd中文"))
+        self.assertEqual(324, server._agent_loop_usage_total(usage, "abcd\u4e2d\u6587"))
 
     async def test_validation_autodetect_falls_back_to_stdlib_unittest(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -777,8 +777,8 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
         server.upsert_session(session_id, "attachment fork", cwd, "chat")
         server.save_events(session_id, [{
             "type": "user_input",
-            "text": "分析附件",
-            "full_text": "【文档: spec.pdf】\n---\n关键规格\n---\n\n分析附件",
+            "text": "Проанализируй вложение",
+            "full_text": "[Документ: spec.pdf]\n---\nКлючевая спецификация\n---\n\nПроанализируй вложение",
             "images": ["/tmp/screenshot.png"],
             "docs": [{"name": "spec.pdf", "path": "/tmp/spec.pdf", "size": 42}],
             "ts": time.time(),
@@ -797,7 +797,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
             forked_session_id = result["session_id"]
             self.assertEqual(["/tmp/screenshot.png"], result["images"])
             self.assertEqual("spec.pdf", result["docs"][0]["name"])
-            self.assertIn("关键规格", result["sent_message"])
+            self.assertIn("Ключевая спецификация", result["sent_message"])
             with server.db_connect() as conn:
                 row = conn.execute(
                     "SELECT workspace_mode FROM sessions WHERE id = ?",
@@ -888,11 +888,11 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                 "type": "event",
                 "event": {
                     "type": "assistant",
-                    "message": {"content": [{"type": "text", "text": "最终总结："}]},
+                    "message": {"content": [{"type": "text", "text": "Финальный итог:"}]},
                 },
             })
             streamed = await iterator.__anext__()
-            self.assertIn("最终总结", streamed)
+            self.assertIn("Финальный итог", streamed)
             await iterator.aclose()
             await queue.put({
                 "type": "event",
@@ -900,7 +900,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                     "type": "result",
                     "subtype": "success",
                     "is_error": False,
-                    "result": "最终总结：\n\n完整内容",
+                    "result": "Финальный итог:\n\nПолное содержание",
                     "usage": {},
                 },
             })
@@ -911,7 +911,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                 for event in server.load_events(session_id)
                 if event.get("type") == "assistant"
             ]
-            self.assertEqual(["最终总结：", "完整内容"], assistant_text)
+            self.assertEqual(["Финальный итог:", "Полное содержание"], assistant_text)
         finally:
             task = server._agent_sdk_detached_turn_tasks.get(session_id)
             if task and not task.done():
@@ -950,7 +950,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                 {
                     "type": "system",
                     "subtype": "plan_ready",
-                    "message": "计划已就绪，等待审批",
+                    "message": "План готов, ожидает подтверждения",
                     "turn_id": turn_id,
                 },
             ],
@@ -1043,7 +1043,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                 "type": "assistant",
                 "message": {
                     "id": "assistant-prefix",
-                    "content": [{"type": "text", "text": "最终总结："}],
+                    "content": [{"type": "text", "text": "Финальный итог:"}],
                 },
             },
         })
@@ -1053,7 +1053,7 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
                 "type": "result",
                 "subtype": "success",
                 "is_error": False,
-                "result": "最终总结：\n\n完整内容",
+                "result": "Финальный итог:\n\nПолное содержание",
                 "usage": {},
             },
         })
@@ -1074,13 +1074,13 @@ class RuntimeOwnershipTest(unittest.IsolatedAsyncioTestCase):
         try:
             payload = "".join([chunk async for chunk in response.body_iterator])
             self.assertIn('"recovered_final": true', payload)
-            self.assertIn("完整内容", payload)
+            self.assertIn("Полное содержание", payload)
             recovered = [
                 event for event in server.load_events(session_id)
                 if event.get("recovered_final") is True
             ]
             self.assertEqual(1, len(recovered))
-            self.assertEqual("完整内容", recovered[0]["message"]["content"][0]["text"])
+            self.assertEqual("Полное содержание", recovered[0]["message"]["content"][0]["text"])
         finally:
             self._cleanup_session(session_id)
 
